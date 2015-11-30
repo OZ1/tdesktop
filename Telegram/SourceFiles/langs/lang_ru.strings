@@ -1,6 +1,6 @@
 /*
 This file is part of Telegram Desktop,
-the official desktop version of Telegram messaging app, see https://telegram.org
+the official desktop version of Telegram messaging app, see https://tlgrm.ru
 
 Telegram Desktop is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@ In addition, as a special exception, the copyright holders give permission
 to link the code of portions of this program with the OpenSSL library.
 
 Full license: https://github.com/telegramdesktop/tdesktop/blob/master/LICENSE
-Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
+Copyright (c) 2014-2015 John Preston, https://desktop.tlgrm.ru
 */
 "lng_language_name" = "Русский";
 "lng_switch_to_this" = "По-русски";
@@ -64,8 +64,8 @@ Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
 "lng_weekday6_full" = "Суббота";
 "lng_weekday7_full" = "Воскресенье";
 
-"lng_month_day" = "{day} {month}";
-"lng_month_day_year" = "{day} {month}, {year}";
+"lng_month_day" = "{month} {day}";
+"lng_month_day_year" = "{month} {day}, {year}";
 
 "lng_box_ok" = "Хорошо";
 
@@ -103,8 +103,8 @@ Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
 "lng_channel_status" = "канал";
 "lng_group_status" = "группа";
 
-"lng_channel_members_link" = "{count:_not_used_|# участник "|Участников: #}";
-"lng_channel_admins_link" = "{count:Добавить администратора|Администраторов: #|Администраторов: #}";
+"lng_channel_members_link" = "{count:_not_used_|# участник|Участников: #} »";
+"lng_channel_admins_link" = "{count:Добавить администратора|Администраторов: #|Администраторов: #} »";
 
 "lng_server_error" = "Ошибка сервера.";
 "lng_flood_error" = "Слишком быстро. Попробуй позже.";
@@ -123,7 +123,7 @@ Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
 "lng_phone_ph" = "номер телефона";
 "lng_phone_title" = "телефон";
 "lng_phone_desc" = "Подтверди код страны и\nвведи номер телефона.";
-"lng_phone_notreg" = "Если нет аккаунта в Telegram,\то, [b]зарегистрируйся[/b] через приложение для [a href=\"https://telegram.org/\"]iOS / Android[/a] или {signup_start}здесь "{signup_end}";
+"lng_phone_notreg" = "Если нет аккаунта в Telegram,\nто, [b]зарегистрируйся[/b] через приложение для [a href=\"https://tlgrm.ru/\"]iOS / Android[/a] или {signup_start}здесь »{signup_end}";
 "lng_country_code" = "Код страны";
 "lng_bad_country_code" = "Неверный код страны";
 "lng_country_ph" = "Поиск";
@@ -133,8 +133,8 @@ Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
 
 "lng_code_ph" = "Твой код";
 "lng_code_desc" = "Мы отправили код доступа в телефон.\nПожалуйста, введи его сюда.";
-"lng_code_Telegram" = "Введите код, который получил в [b]Telegram[/b] на другом устройстве";
-"lng_code_no_Telegram" = "Отправить код через SMS";
+"lng_code_telegram" = "Введите код, который получил в [b]Telegram[/b] на другом устройстве";
+"lng_code_no_telegram" = "Отправить код через SMS";
 "lng_code_call" = "Telegram позвонит через {minutes}:{seconds}";
 "lng_code_calling" = "Запрос вызова из Telegram..";
 "lng_code_called" = "Telegram набирает номер";
@@ -147,9 +147,9 @@ Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
 
 "lng_signin_title" = "Проверка пароля";
 "lng_signin_desc" = "Введи пароль";
-"lng_signin_recover_desc" = "Введи код, который мы отправили на {email}.";
+"lng_signin_recover_desc" = "Введи код, который мы отправили на e-mail.";
 "lng_signin_password" = "Твой пароль";
-"lng_signin_code" = "Код, который мы отправили на {email}";
+"lng_signin_code" = "Код, который мы отправили на e-mail";
 "lng_signin_recover" = "Забыл пароль?";
 "lng_signin_recover_title" = "Сбросить пароль";
 "lng_signin_hint" = "Подсказка: {password_hint}";
@@ -231,7 +231,7 @@ Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
 "lng_settings_workmode_window" = "Показывать иконку в области задач";
 "lng_settings_auto_start" = "Запускать Telegram при старте";
 "lng_settings_start_min" = "Запускать свёрнутым";
-"lng_settings_add_sendto" = "Добавить Telegram в меню "Отправить..."";
+"lng_settings_add_sendto" = "Добавить Telegram в меню «Отправить...»";
 "lng_settings_scale_label" = "Масштаб интерфейса";
 "lng_settings_scale_auto" = "Авто ({cur})";
 
@@ -256,7 +256,7 @@ Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
 "lng_download_path_default" = "исходная папка";
 "lng_download_path_clear" = "Очистить всё";
 "lng_download_path_header" = "Куда скачивать";
-"lng_download_path_default_radio" = "Папка "Загрузки"";
+"lng_download_path_default_radio" = "Папка «Загрузки»";
 "lng_download_path_temp_radio" = "Временная папка (очищается при выходе)";
 "lng_download_path_dir_radio" = "Пользовательская  папка (очищается вручную)";
 "lng_download_path_choose" = "Куда скачивать";
@@ -295,8 +295,7 @@ Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
 "lng_passcode_enter_first" = "Введи код доступа";
 "lng_passcode_enter_new" = "Введи новый пароль";
 "lng_passcode_confirm_new" = "Повтори ввод пароля";
-"lng_passcode_about" = "После установки кода доступа в правом верхнем углу появится замочек. С его помощь/ можно заблокировать приложение.\n\nНо: если забудешь код доступа, 
- придётся войти в приложение заново.";
+"lng_passcode_about" = "После установки кода доступа в правом верхнем углу появится замочек. С его помощью можно заблокировать приложение.\n\nНо: если забудешь код доступа, придётся войти в приложение заново.";
 "lng_passcode_differ" = "Пароли не совпадают";
 "lng_passcode_wrong" = "Неверный пароль";
 "lng_passcode_is_same" = "Пароль не был изменён";
@@ -415,17 +414,17 @@ Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
 "lng_profile_loading" = "Загрузка..";
 "lng_profile_shared_media" = "Общие файлы";
 "lng_profile_no_media" = "В истории сообщений нет файлов.";
-"lng_profile_photos" = "{count:_not_used_|# фотография|Фотографий: #}";
+"lng_profile_photos" = "{count:_not_used_|# фотография|Фотографий: #} »";
 "lng_profile_photos_header" = "Просмотр фотографий";
-"lng_profile_videos" = "Видеозаписей: {count:_not_used_|# |# }";
+"lng_profile_videos" = "Видеозаписей: {count:_not_used_|# |# } »";
 "lng_profile_videos_header" = "Просмотр видео";
-"lng_profile_songs" = "{count:_not_used_|# аудиофайл|Аудиофайлов: #}";
+"lng_profile_songs" = "{count:_not_used_|# аудиофайл|Аудиофайлов: #} »";
 "lng_profile_songs_header" = "Просмотр аудиофайлов";
-"lng_profile_files" = "{count:_not_used_|# файл|Файлов: #}";
+"lng_profile_files" = "{count:_not_used_|# файл|Файлов: #} »";
 "lng_profile_files_header" = "Просмотр файлов";
-"lng_profile_audios" = "{count:_not_used_|# аудиозапись|Аудиозаписей: #}";
+"lng_profile_audios" = "{count:_not_used_|# аудиозапись|Аудиозаписей: #} »";
 "lng_profile_audios_header" = "Обзор аудиозаписей";
-"lng_profile_shared_links" = "{count:_not_used_|# ссылка |Ссылок: #}";
+"lng_profile_shared_links" = "{count:_not_used_|# ссылка |Ссылок: #} »";
 "lng_profile_shared_links_header" = "Все ссылки";
 "lng_profile_copy_phone" = "Скопировать номер";
 
@@ -443,12 +442,12 @@ Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
 
 "lng_participant_filter" = "Поиск";
 "lng_participant_invite" = "Пригласить";
-"lng_participant_invite_sorry" = "К сожалению, вручную можно добавить только первых {count} пользователей.\n\nДля того, чтобы пригласить больше людей, воспользуйтесь пригласительной ссылкой.";
+"lng_participant_invite_sorry" = "К сожалению, вручную можно добавить только первых {count:_not_used|# пользователь|# пользователей}.\n\nДля того, чтобы пригласить больше людей, воспользуйтесь пригласительной ссылкой.";
 "lng_create_group_back" = "Назад";
 "lng_create_group_next" = "Далее";
 "lng_create_group_create" = "Создать";
 "lng_create_group_title" = "Создать группу";
-"lng_create_group_about" = "Группы идеально подходят для маленьких сообществ – вплоть до {count} участников";
+"lng_create_group_about" = "Группы идеально подходят для маленьких сообществ – вплоть до {count:_not_used|# участника|# участников}";
 "lng_create_channel_title" = "Создать канал";
 "lng_create_channel_about" = "Каналы – это инструмент для вещания ваших сообщений неограниченному числу пользователей";
 "lng_create_public_channel_title" = "Публичный канал";
@@ -475,8 +474,8 @@ Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
 
 "lng_sure_delete_contact" = "Вы уверены, что хотите удалить из контактов {contact}?";
 "lng_sure_delete_history" = "Вы уверены, что хотите удалить историю сообщений с {contact}?\n\nВосстановить сообщения будет невозможно.";
-"lng_sure_delete_group_history" = "Вы уверены, что хотите удалить историю сообщений в "{group}"?\n\nЭто действие нельзя будет отменить.";
-"lng_sure_delete_and_exit" = "Вы уверены, что хотите удалить историю сообщений и покинуть "{group}"?\n\nЭто действие нельзя будет отменить";
+"lng_sure_delete_group_history" = "Вы уверены, что хотите удалить историю сообщений в «{group}»?\n\nЭто действие нельзя будет отменить.";
+"lng_sure_delete_and_exit" = "Вы уверены, что хотите удалить историю сообщений и покинуть «{group}»?\n\nЭто действие нельзя будет отменить";
 "lng_sure_leave_channel" = "Уверены, что хотите покинуть этот канал?";
 "lng_sure_delete_channel" = "Уверены, что хотите удалить этот канал? Все участники и сообщения будут безвозвратно удалены.";
 "lng_sure_leave_group" = "Уверены, что хотите покинуть эту группу?";
@@ -486,8 +485,6 @@ Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
 "lng_media_unsupported" = "Неподдерживаемый файл";
 
 "lng_action_add_user" = "{from} добавил(а) {user}";
-"lng_action_add_user_and_user" = "{from} добавил(а) {user} и {second_user}";
-"lng_action_add_users" = "{from} добавил(а) {user} и ещё {count:_not_used|#|#}";
 "lng_action_add_users_many" = "{from} добавил(а) {users}";
 "lng_action_add_users_and_one" = "{accumulated}, {user}";
 "lng_action_add_users_and_last" = "{accumulated} и {user}";
@@ -504,10 +501,10 @@ Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
 "lng_action_removed_photo_channel" = "Фото канала удалено";
 "lng_action_changed_photo" = "{from} изменил(а) фото группы";
 "lng_action_changed_photo_channel" = "Фото обновлено";
-"lng_action_changed_title" = "{from} изменил(а) название группы на "{title}"";
-"lng_action_changed_title_channel" = "Имя канала изменено на "{title}"";
-"lng_action_created_chat" = "{from} создал(а) группу "{title}"";
-"lng_action_created_channel" = "Канал "{title}" создан";
+"lng_action_changed_title" = "{from} изменил(а) название группы на «{title}»";
+"lng_action_changed_title_channel" = "Имя канала изменено на «{title}»";
+"lng_action_created_chat" = "{from} создал(а) группу «{title}»";
+"lng_action_created_channel" = "Канал «{title}» создан";
 "lng_action_group_migrate" = "Эта группа была преобразована в супергруппу";
 
 "lng_profile_migrate_reached" = "Достигнут лимит в {count:_not_used_|# участника|# участников}";
@@ -528,8 +525,8 @@ Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
 "lng_channels_too_much_public" = "К сожалению, вы создали слишком много публичных каналов.\n\nВы можете либо удалить один из существующих, либо создать приватный канал.";
 
 "lng_group_invite_bad_link" = "Ссылка некорректна или просрочена.";
-"lng_group_invite_want_join" = "Войти в группу "{title}"?";
-"lng_group_invite_want_join_channel" = "Присоединиться к каналу "{title}"?";
+"lng_group_invite_want_join" = "Войти в группу «{title}»?";
+"lng_group_invite_want_join_channel" = "Присоединиться к каналу «{title}»?";
 "lng_group_invite_join" = "Присоединиться";
 
 "lng_group_invite_link" = "Ссылка для приглашения:";
@@ -578,7 +575,7 @@ Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
 "lng_box_remove" = "Удалить";
 
 "lng_custom_stickers" = "Пользовательские стикеры";
-"lng_stickers_remove_pack" = "Удалить "{sticker_pack}"?";
+"lng_stickers_remove_pack" = "Удалить «{sticker_pack}»?";
 "lng_stickers_add_pack" = "Установить стикеры";
 "lng_stickers_share_pack" = "Поделиться стикерами";
 "lng_stickers_not_found" = "Стикеры не найдены";
@@ -603,7 +600,7 @@ Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
 "lng_cant_send_to_not_contact" = "К сожалению, вы можете отправлять сообщения только взаимным контактам. {more_info}";
 "lng_cant_invite_not_contact" = "К сожалению, вы можете добавлять в группы только взаимные контакты. {more_info}";
 "lng_cant_invite_not_contact_channel" = "К сожалению, вы можете добавлять в каналы только взаимные контакты. {more_info}";
-"lng_cant_more_info" = "Подробнее "";
+"lng_cant_more_info" = "Подробнее »";
 
 "lng_send_button" = "Отправить";
 "lng_message_ph" = "Наберите ваше сообщение..";
@@ -627,7 +624,7 @@ Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
 "lng_bot_choose_group" = "Выберите группу";
 "lng_bot_no_groups" = "У вас нет групп";
 "lng_bot_groups_not_found" = "Группы не найдены";
-"lng_bot_sure_invite" = "Добавить робота в "{group}"?";
+"lng_bot_sure_invite" = "Добавить робота в «{group}»?";
 "lng_bot_already_in_group" = "Робот уже состоит в указанной группе.";
 
 "lng_typing" = "печатает";
@@ -706,13 +703,13 @@ Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
 "lng_send_image_compressed" = "Сжать отправляемое изображение";
 "lng_send_image_empty" = "Невозможно отправить пустой файл :(";
 "lng_send_image_too_large" = "К сожалению, файлы объёмом более 1.5 ГБ отправлять нельзя :(";
-"lng_send_folder" = "Невозможно отправить "{name}", потому что это – не файл :(";
+"lng_send_folder" = "Невозможно отправить «{name}», потому что это – не файл :(";
 
 "lng_forward_choose" = "Выберите получателя..";
 "lng_forward_cant" = "К сожалению, сюда нельзя пересылать сообщения :(";
 "lng_forward_confirm" = "Переслать пользователю {recipient}?";
 "lng_forward_share_contact" = "Поделиться контактом с {recipient}?";
-"lng_forward_send_file_confirm" = "Отправить "{name}" пользователю {recipient}?";
+"lng_forward_send_file_confirm" = "Отправить «{name}» пользователю {recipient}?";
 "lng_forward_send_files_confirm" = "Отправить файлы {recipient}?";
 "lng_forward_send" = "Отправить";
 "lng_forward_messages" = "{count:_not_used_|Пересланное сообщение|Пересланных сообщений: #}";
@@ -760,8 +757,8 @@ Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
 "lng_box_leave" = "Покинуть";
 
 "lng_about_version" = "Версия {version}";
-"lng_about_text_1" = "Официальное приложение для быстрого и безопасного общения, основанное на [a href=\"https://core.telegram.org/api\"]Telegram API[/a]";
-"lng_about_text_2" = "Это ПО распространяется по лицензии [a href=\"https://github.com/Telegramdesktop/tdesktop/blob/master/LICENSE\"]GNU GPL3[/a], исходный код доступен на [a href=\"https://github.com/Telegramdesktop/tdesktop\"]GitHub[/a].";
+"lng_about_text_1" = "Официальное приложение для быстрого и безопасного общения, основанное на [a href=\"https://core.tlgrm.ru/api\"]Telegram API[/a]";
+"lng_about_text_2" = "Это ПО распространяется по лицензии [a href=\"https://github.com/telegramdesktop/tdesktop/blob/master/LICENSE\"]GNU GPL3[/a], исходный код доступен на [a href=\"https://github.com/telegramdesktop/tdesktop\"]GitHub[/a].";
 "lng_about_text_3" = "Подробнее читайте в [a href=\"https://tlgrm.ru/faq\"]часто задаваемых вопросах[/a].{faq_open}{faq_close}";
 "lng_about_done" = "Закрыть";
 
@@ -792,7 +789,7 @@ Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
 
 "lng_new_version_wrap" = "Telegram Desktop был обновлён до версии {version}\n\n{changes}\n\nПолная история изменений доступна здесь:\n{link}";
 "lng_new_version_minor" = "— Исправления багов и незначительные улучшения";
-"lng_new_version_text" = "— В группы теперь можно добавлять администраторов, которые смогут менять название и настройки группы и удалять участников;\n— Группы, в которых состоит более 200 участников, можно преобразовать в супергруппу, в которую помещается до 1,000 участников.\n\nПодробнее об администраторах и супергруппах:\nhttps://tlgrm.ru/r/supergroups";
+"lng_new_version_text" = "— В группы теперь можно добавлять администраторов, которые смогут менять название и настройки группы и удалять участников;\n— Группы, в которых состоит более 200 участников, можно преобразовать в супергруппу, в которую помещается до 1,000 участников.\n\nПодробнее об администраторах и супергруппах:\n{link}";
 
 "lng_menu_insert_unicode" = "Вставьте управляющий символ Unicode";
 
@@ -824,12 +821,12 @@ Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
 "lng_mac_not_known_app" = "Неизвестно, сможет ли открыть эта программа \"{file}\".";
 
 "lng_mac_menu_services" = "Сервисы";
-"lng_mac_menu_hide_Telegram" = "Скрыть {Telegram}";
+"lng_mac_menu_hide_telegram" = "Скрыть {telegram}";
 "lng_mac_menu_hide_others" = "Скрыть остальное";
 "lng_mac_menu_show_all" = "Показать всё";
 "lng_mac_menu_preferences" = "Настройки...";
-"lng_mac_menu_quit_Telegram" = "Выйти из {Telegram}";
-"lng_mac_menu_about_Telegram" = "О программе";
+"lng_mac_menu_quit_telegram" = "Выйти из {telegram}";
+"lng_mac_menu_about_telegram" = "О {telegram}";
 "lng_mac_menu_file" = "Файл";
 "lng_mac_menu_logout" = "Выйти";
 "lng_mac_menu_edit" = "Правка";
