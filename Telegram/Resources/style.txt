@@ -66,7 +66,7 @@ overBg: #edf2f5;
 
 boxBg: white;
 boxVerticalMargin: 10px;
-boxWidth: 320px;
+boxWidth: 350px;
 boxWideWidth: 364px;
 boxPadding: margins(26px, 30px, 34px, 8px);
 boxMaxListHeight: 600px;

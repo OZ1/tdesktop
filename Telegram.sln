@@ -18,6 +18,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Updater", "Telegram\Updater
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MetaLang", "Telegram\MetaLang.vcxproj", "{E417CAA4-259B-4C99-88E3-805F1300E8EB}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2F863EAD-33C9-4014-A573-93F085BA9CB1}"
+	ProjectSection(SolutionItems) = preProject
+		lang_ru.cmd = lang_ru.cmd
+	EndProjectSection
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Packer", "Telegram\Packer.vcxproj", "{56A9A4B2-21E5-4360-AFA8-85B43AC43B08}"
 EndProject
 Global
