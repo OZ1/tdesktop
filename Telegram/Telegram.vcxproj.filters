@@ -1195,7 +1195,7 @@
     <CustomBuild Include="SourceFiles\playerwidget.h">
       <Filter>Source Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="Resources\lang.strings">
+    <CustomBuild Include="SourceFiles\langs\lang_ru.strings">
       <Filter>Resources</Filter>
     </CustomBuild>
     <CustomBuild Include="Resources\numbers.txt">
