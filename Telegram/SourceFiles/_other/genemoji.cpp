@@ -2155,7 +2155,7 @@ Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org\n\
 			tcpp << "\tif (end > from + 10 && (from + 8)->unicode() == 0x200D) {\n";
 			tcpp << "\t\tuint32 four = (uint32((from + 9)->unicode()) << 16) | uint32((from + 10)->unicode());\n\n";
 			tcpp << "\t\tif (one == man) {\n";
-			tcpp << "\t\t\tif (two == man) {\n";
+			tcpp << "\t\t\tif (two == woman) {\n";
 
 			tcpp << "\t\t\t\tif (three == girl) {\n";
 			tcpp << "\t\t\t\t\tif (four == girl) return &emojis[sequenceOffset + 13];\n";
@@ -2174,10 +2174,10 @@ Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org\n\
 			tcpp << "\t\t\t\t}\n";
 
 			tcpp << "\t\t\t} else if (two == heart) {\n";
-			tcpp << "\t\t\t\tif (three == kiss && four == man) return &emojis[sequenceOffset + 17];\n";
+			tcpp << "\t\t\t\tif (three == kiss && four == woman) return &emojis[sequenceOffset + 17];\n";
 			tcpp << "\t\t\t}\n";
 			tcpp << "\t\t} else {\n"; // one == woman
-			tcpp << "\t\t\tif (two == woman) {\n";
+			tcpp << "\t\t\tif (two == man) {\n";
 
 			tcpp << "\t\t\t\tif (three == girl) {\n";
 			tcpp << "\t\t\t\t\tif (four == girl) return &emojis[sequenceOffset + 8];\n";
@@ -2187,13 +2187,13 @@ Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org\n\
 			tcpp << "\t\t\t\t}\n";
 
 			tcpp << "\t\t\t} else if (two == heart) {\n";
-			tcpp << "\t\t\t\tif (three == kiss && four == woman) return &emojis[sequenceOffset + 16];\n";
+			tcpp << "\t\t\t\tif (three == kiss && four == man) return &emojis[sequenceOffset + 16];\n";
 			tcpp << "\t\t\t}\n";
 			tcpp << "\t\t}\n";
 			tcpp << "\t}\n";
 
 			tcpp << "\tif (one == man) {\n";
-			tcpp << "\t\tif (two == man) {\n";
+			tcpp << "\t\tif (two == woman) {\n";
 
 			tcpp << "\t\t\tif (three == girl) return &emojis[sequenceOffset + 10];\n";
 			tcpp << "\t\t\tif (three == boy) return &emojis[sequenceOffset + 9];\n";
@@ -2201,16 +2201,16 @@ Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org\n\
 			tcpp << "\t\t} else if (two == woman) {\n";
 			tcpp << "\t\t\tif (three == girl) return &emojis[sequenceOffset + 0];\n";
 			tcpp << "\t\t} else if (two == heart) {\n";
-			tcpp << "\t\t\tif (three == man) return &emojis[sequenceOffset + 15];\n";
+			tcpp << "\t\t\tif (three == woman) return &emojis[sequenceOffset + 15];\n";
 			tcpp << "\t\t}\n";
 			tcpp << "\t} else {\n"; // one == woman
-			tcpp << "\t\tif (two == woman) {\n";
+			tcpp << "\t\tif (two == man) {\n";
 
 			tcpp << "\t\t\tif (three == girl) return &emojis[sequenceOffset + 5];\n";
 			tcpp << "\t\t\tif (three == boy) return &emojis[sequenceOffset + 4];\n";
 
 			tcpp << "\t\t} else if (two == heart) {\n";
-			tcpp << "\t\t\tif (three == woman) return &emojis[sequenceOffset + 14];\n";
+			tcpp << "\t\t\tif (three == man) return &emojis[sequenceOffset + 14];\n";
 			tcpp << "\t\t}\n";
 			tcpp << "\t}\n";
 

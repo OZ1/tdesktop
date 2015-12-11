@@ -3126,7 +3126,7 @@ EmojiPtr emojiGet(const QChar *from, const QChar *end) {
 		uint32 four = (uint32((from + 9)->unicode()) << 16) | uint32((from + 10)->unicode());
 
 		if (one == man) {
-			if (two == man) {
+			if (two == woman) {
 				if (three == girl) {
 					if (four == girl) return &emojis[sequenceOffset + 13];
 					if (four == boy) return &emojis[sequenceOffset + 11];
@@ -3141,10 +3141,10 @@ EmojiPtr emojiGet(const QChar *from, const QChar *end) {
 					if (four == boy) return &emojis[sequenceOffset + 2];
 				}
 			} else if (two == heart) {
-				if (three == kiss && four == man) return &emojis[sequenceOffset + 17];
+				if (three == kiss && four == woman) return &emojis[sequenceOffset + 17];
 			}
 		} else {
-			if (two == woman) {
+			if (two == man) {
 				if (three == girl) {
 					if (four == girl) return &emojis[sequenceOffset + 8];
 					if (four == boy) return &emojis[sequenceOffset + 6];
@@ -3152,25 +3152,25 @@ EmojiPtr emojiGet(const QChar *from, const QChar *end) {
 					if (four == boy) return &emojis[sequenceOffset + 7];
 				}
 			} else if (two == heart) {
-				if (three == kiss && four == woman) return &emojis[sequenceOffset + 16];
+				if (three == kiss && four == man) return &emojis[sequenceOffset + 16];
 			}
 		}
 	}
 	if (one == man) {
-		if (two == man) {
+		if (two == woman) {
 			if (three == girl) return &emojis[sequenceOffset + 10];
 			if (three == boy) return &emojis[sequenceOffset + 9];
 		} else if (two == woman) {
 			if (three == girl) return &emojis[sequenceOffset + 0];
 		} else if (two == heart) {
-			if (three == man) return &emojis[sequenceOffset + 15];
+			if (three == woman) return &emojis[sequenceOffset + 15];
 		}
 	} else {
-		if (two == woman) {
+		if (two == man) {
 			if (three == girl) return &emojis[sequenceOffset + 5];
 			if (three == boy) return &emojis[sequenceOffset + 4];
 		} else if (two == heart) {
-			if (three == woman) return &emojis[sequenceOffset + 14];
+			if (three == man) return &emojis[sequenceOffset + 14];
 		}
 	}
 	return 0;
