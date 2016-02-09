@@ -16,7 +16,7 @@ In addition, as a special exception, the copyright holders give permission
 to link the code of portions of this program with the OpenSSL library.
 
 Full license: https://github.com/telegramdesktop/tdesktop/blob/master/LICENSE
-Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
+Copyright (c) 2014-2016 John Preston, https://desktop.telegram.org
 */
 #pragma once
 
@@ -24,10 +24,8 @@ extern bool gDebug;
 inline bool cDebug() {
 #if defined _DEBUG
 	return true;
-#elif defined _WITH_DEBUG
-	return gDebug;
 #else
-	return false;
+	return gDebug;
 #endif
 }
 inline void cSetDebug(bool debug) {
@@ -54,6 +52,8 @@ DeclareSetting(Qt::LayoutDirection, LangDir);
 inline bool rtl() {
 	return cRtl();
 }
+
+DeclareReadSetting(QString, Arguments);
 
 struct mtpDcOption {
 	mtpDcOption(int id, int flags, const string &ip, int port) : id(id), flags(flags), ip(ip), port(port) {
@@ -82,7 +82,14 @@ DeclareSetting(bool, AutoStart);
 DeclareSetting(bool, StartMinimized);
 DeclareSetting(bool, StartInTray);
 DeclareSetting(bool, SendToMenu);
-DeclareReadSetting(bool, FromAutoStart);
+enum LaunchMode {
+	LaunchModeNormal = 0,
+	LaunchModeAutoStart,
+	LaunchModeFixPrevious,
+	LaunchModeCleanup,
+	LaunchModeShowCrash,
+};
+DeclareReadSetting(LaunchMode, LaunchMode);
 DeclareSetting(QString, WorkingDir);
 inline void cForceWorkingDir(const QString &newDir) {
 	cSetWorkingDir(newDir);
@@ -310,13 +317,12 @@ DeclareSetting(int32, IntRetinaFactor);
 DeclareSetting(bool, CustomNotifies);
 
 DeclareReadSetting(DBIPlatform, Platform);
+DeclareReadSetting(QString, PlatformString);
 DeclareReadSetting(bool, IsElCapitan);
 DeclareReadSetting(QUrl, UpdateURL);
 
 DeclareSetting(bool, ContactsReceived);
 DeclareSetting(bool, DialogsReceived);
-
-DeclareSetting(bool, WideMode);
 
 DeclareSetting(int, OnlineUpdatePeriod);
 DeclareSetting(int, OfflineBlurTimeout);

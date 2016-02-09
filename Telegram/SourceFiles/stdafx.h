@@ -16,11 +16,15 @@ In addition, as a special exception, the copyright holders give permission
 to link the code of portions of this program with the OpenSSL library.
 
 Full license: https://github.com/telegramdesktop/tdesktop/blob/master/LICENSE
-Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
+Copyright (c) 2014-2016 John Preston, https://desktop.telegram.org
 */
 #define __HUGE
 #define PSAPI_VERSION 1 // fix WinXP
 //#define Q_NO_TEMPLATE_FRIENDS // fix some compiler difference issues
+
+#define __STDC_FORMAT_MACROS // fix breakpad for mac
+
+#ifdef __cplusplus
 
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
@@ -38,6 +42,9 @@ Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
 #include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QNetworkReply>
 #include <QtNetwork/QNetworkProxy>
+#include <QtNetwork/QLocalSocket>
+#include <QtNetwork/QLocalServer>
+#include <QtNetwork/QHttpMultiPart>
 
 #ifdef Q_OS_WIN // use Lzma SDK for win
 #include <LzmaLib.h>
@@ -47,11 +54,17 @@ Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
 
 extern "C" {
 
+#endif
+
+#include "zip.h"
+
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libavutil/opt.h>
 #include <libswresample/swresample.h>
 #include <libswscale/swscale.h>
+
+#ifdef __cplusplus
 
 }
 
@@ -74,3 +87,5 @@ extern "C" {
 #include "gui/flatlabel.h"
 
 #include "app.h"
+
+#endif

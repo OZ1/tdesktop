@@ -16,7 +16,7 @@ In addition, as a special exception, the copyright holders give permission
 to link the code of portions of this program with the OpenSSL library.
 
 Full license: https://github.com/telegramdesktop/tdesktop/blob/master/LICENSE
-Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
+Copyright (c) 2014-2016 John Preston, https://desktop.telegram.org
 */
 #pragma once
 
@@ -37,7 +37,7 @@ namespace App {
 
 };
 
-namespace Ui { // openssl doesn't allow me to use UI :(
+namespace Ui {
 
 	void showStickerPreview(DocumentData *sticker);
 	void hideStickerPreview();
@@ -96,19 +96,54 @@ namespace Notify {
 
 };
 
+#define DeclareReadOnlyVar(Type, Name) const Type &Name();
+#define DeclareRefVar(Type, Name) DeclareReadOnlyVar(Type, Name) \
+	Type &Ref##Name();
+#define DeclareVar(Type, Name) DeclareRefVar(Type, Name) \
+	void Set##Name(const Type &Name);
+
+namespace Sandbox {
+
+	bool CheckBetaVersionDir();
+	void WorkingDirReady();
+
+	void start();
+	void finish();
+
+	DeclareReadOnlyVar(QString, LangSystemISO);
+	DeclareReadOnlyVar(int32, LangSystem);
+	DeclareVar(QByteArray, LastCrashDump);
+	DeclareVar(ConnectionProxy, PreLaunchProxy);
+
+}
+
+namespace Adaptive {
+	enum Layout {
+		OneColumnLayout,
+		NormalLayout,
+		WideLayout,
+	};
+};
+
 namespace Global {
 
-	class Initializer {
-	public:
-		Initializer();
-		~Initializer();
-	};
+	bool started();
+	void start();
+	void finish();
 
-#define DeclareGlobalReadOnly(Type, Name) const Type &Name();
-#define DeclareGlobal(Type, Name) DeclareGlobalReadOnly(Type, Name) \
-	void Set##Name(const Type &Name); \
-	Type &Ref##Name();
-
-	DeclareGlobalReadOnly(uint64, LaunchId);
+	DeclareReadOnlyVar(uint64, LaunchId);
+	DeclareVar(Adaptive::Layout, AdaptiveLayout);
 
 };
+
+namespace Adaptive {
+	inline bool OneColumn() {
+		return Global::AdaptiveLayout() == OneColumnLayout;
+	}
+	inline bool Normal() {
+		return Global::AdaptiveLayout() == NormalLayout;
+	}
+	inline bool Wide() {
+		return Global::AdaptiveLayout() == WideLayout;
+	}
+}

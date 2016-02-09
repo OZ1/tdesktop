@@ -16,7 +16,7 @@ In addition, as a special exception, the copyright holders give permission
 to link the code of portions of this program with the OpenSSL library.
 
 Full license: https://github.com/telegramdesktop/tdesktop/blob/master/LICENSE
-Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
+Copyright (c) 2014-2016 John Preston, https://desktop.telegram.org
 */
 #include "stdafx.h"
 
@@ -4013,9 +4013,9 @@ void MentionsInner::paintEvent(QPaintEvent *e) {
 				}
 			}
 		}
-		p.fillRect(cWideMode() ? st::lineWidth : 0, _parent->innerBottom() - st::lineWidth, width() - (cWideMode() ? st::lineWidth : 0), st::lineWidth, st::shadowColor->b);
+		p.fillRect(Adaptive::OneColumn() ? 0 : st::lineWidth, _parent->innerBottom() - st::lineWidth, width() - (Adaptive::OneColumn() ? 0 : st::lineWidth), st::lineWidth, st::shadowColor->b);
 	}
-	p.fillRect(cWideMode() ? st::lineWidth : 0, _parent->innerTop(), width() - (cWideMode() ? st::lineWidth : 0), st::lineWidth, st::shadowColor->b);
+	p.fillRect(Adaptive::OneColumn() ? 0 : st::lineWidth, _parent->innerTop(), width() - (Adaptive::OneColumn() ? 0 : st::lineWidth), st::lineWidth, st::shadowColor->b);
 }
 
 void MentionsInner::resizeEvent(QResizeEvent *e) {
@@ -4064,6 +4064,7 @@ bool MentionsInner::select() {
 	if (!_srows->isEmpty()) {
 		if (_sel >= 0 && _sel < _srows->size()) {
 			emit selected(_srows->at(_sel));
+			return true;
 		}
 	} else {
 		QString sel = getSelected();
@@ -4320,7 +4321,7 @@ void MentionsDropdown::updateFiltered(bool resetScroll) {
 				if (it->emoji.isEmpty()) {
 					setsToRequest.insert(it->id, it->access);
 					it->flags |= MTPDstickerSet_flag_NOT_LOADED;
-				} else {
+				} else if (!(it->flags & MTPDstickerSet::flag_disabled)) {
 					StickersByEmojiMap::const_iterator i = it->emoji.constFind(emojiGetNoColor(_emoji));
 					if (i != it->emoji.cend()) {
 						srows += *i;
@@ -4636,10 +4637,12 @@ bool MentionsDropdown::eventFilter(QObject *obj, QEvent *e) {
 	if (isHidden()) return QWidget::eventFilter(obj, e);
 	if (e->type() == QEvent::KeyPress) {
 		QKeyEvent *ev = static_cast<QKeyEvent*>(e);
-		if (ev->key() == Qt::Key_Up || ev->key() == Qt::Key_Down || (!_srows.isEmpty() && (ev->key() == Qt::Key_Left || ev->key() == Qt::Key_Right))) {
-			return _inner.moveSel(ev->key());
-		} else if (ev->key() == Qt::Key_Enter || ev->key() == Qt::Key_Return) {
-			return _inner.select();
+		if (!(ev->modifiers() & (Qt::AltModifier | Qt::ControlModifier | Qt::ShiftModifier | Qt::MetaModifier))) {
+			if (ev->key() == Qt::Key_Up || ev->key() == Qt::Key_Down || (!_srows.isEmpty() && (ev->key() == Qt::Key_Left || ev->key() == Qt::Key_Right))) {
+				return _inner.moveSel(ev->key());
+			} else if (ev->key() == Qt::Key_Enter || ev->key() == Qt::Key_Return) {
+				return _inner.select();
+			}
 		}
 	}
 	return QWidget::eventFilter(obj, e);

@@ -16,7 +16,7 @@ In addition, as a special exception, the copyright holders give permission
 to link the code of portions of this program with the OpenSSL library.
 
 Full license: https://github.com/telegramdesktop/tdesktop/blob/master/LICENSE
-Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
+Copyright (c) 2014-2016 John Preston, https://desktop.telegram.org
 */
 #include "stdafx.h"
 #include "audio.h"
@@ -2059,7 +2059,7 @@ void AudioCaptureInner::onStop(bool needResult) {
 			}
 		}
 	}
-	DEBUG_LOG(("Audio Capture: stopping (need result: %1), size: %2, samples: %3").arg(logBool(needResult)).arg(d->data.size()).arg(d->fullSamples));
+	DEBUG_LOG(("Audio Capture: stopping (need result: %1), size: %2, samples: %3").arg(Logs::b(needResult)).arg(d->data.size()).arg(d->fullSamples));
 	_captured = QByteArray();
 
 	// Finish stream

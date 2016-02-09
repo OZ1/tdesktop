@@ -16,7 +16,7 @@ In addition, as a special exception, the copyright holders give permission
 to link the code of portions of this program with the OpenSSL library.
 
 Full license: https://github.com/telegramdesktop/tdesktop/blob/master/LICENSE
-Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
+Copyright (c) 2014-2016 John Preston, https://desktop.telegram.org
 */
 #include "stdafx.h"
 
@@ -24,6 +24,7 @@ Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
 #include "mainwidget.h"
 
 #include "layerwidget.h"
+#include "lang.h"
 
 namespace App {
 
@@ -175,39 +176,144 @@ namespace Notify {
 
 }
 
+#define DefineReadOnlyVar(Namespace, Type, Name) const Type &Name() { \
+	t_assert_full(Namespace##Data != 0, #Namespace "Data is null in " #Namespace "::" #Name, __FILE__, __LINE__); \
+	return Namespace##Data->Name; \
+}
+#define DefineRefVar(Namespace, Type, Name) DefineReadOnlyVar(Namespace, Type, Name) \
+Type &Ref##Name() { \
+	t_assert_full(Namespace##Data != 0, #Namespace "Data is null in Global::Ref" #Name, __FILE__, __LINE__); \
+	return Namespace##Data->Name; \
+}
+#define DefineVar(Namespace, Type, Name) DefineRefVar(Namespace, Type, Name) \
+void Set##Name(const Type &Name) { \
+	t_assert_full(Namespace##Data != 0, #Namespace "Data is null in Global::Set" #Name, __FILE__, __LINE__); \
+	Namespace##Data->Name = Name; \
+}
+
+struct SandboxDataStruct {
+	QString LangSystemISO;
+	int32 LangSystem = languageDefault;
+
+	QByteArray LastCrashDump;
+	ConnectionProxy PreLaunchProxy;
+};
+SandboxDataStruct *SandboxData = 0;
+
+namespace Sandbox {
+
+	bool CheckBetaVersionDir() {
+		QFile beta(cExeDir() + qsl("TelegramBeta_data/tdata/beta"));
+		if (cBetaVersion()) {
+			cForceWorkingDir(cExeDir() + qsl("TelegramBeta_data/"));
+			QDir().mkpath(cWorkingDir() + qstr("tdata"));
+			if (*BetaPrivateKey) {
+				cSetBetaPrivateKey(QByteArray(BetaPrivateKey));
+			}
+			if (beta.open(QIODevice::WriteOnly)) {
+				QDataStream dataStream(&beta);
+				dataStream.setVersion(QDataStream::Qt_5_3);
+				dataStream << quint64(cRealBetaVersion()) << cBetaPrivateKey();
+			} else {
+				LOG(("FATAL: Could not open '%1' for writing private key!").arg(beta.fileName()));
+				return false;
+			}
+		} else if (beta.exists()) {
+			cForceWorkingDir(cExeDir() + qsl("TelegramBeta_data/"));
+			if (beta.open(QIODevice::ReadOnly)) {
+				QDataStream dataStream(&beta);
+				dataStream.setVersion(QDataStream::Qt_5_3);
+
+				quint64 v;
+				QByteArray k;
+				dataStream >> v >> k;
+				if (dataStream.status() == QDataStream::Ok) {
+					cSetBetaVersion(qMax(v, AppVersion * 1000ULL));
+					cSetBetaPrivateKey(k);
+					cSetRealBetaVersion(v);
+				} else {
+					LOG(("FATAL: '%1' is corrupted, reinstall private beta!").arg(beta.fileName()));
+					return false;
+				}
+			} else {
+				LOG(("FATAL: could not open '%1' for reading private key!").arg(beta.fileName()));
+				return false;
+			}
+		}
+		return true;
+	}
+
+	void WorkingDirReady() {
+		if (QFile(cWorkingDir() + qsl("tdata/withtestmode")).exists()) {
+			cSetTestMode(true);
+		}
+		if (!cDebug() && QFile(cWorkingDir() + qsl("tdata/withdebug")).exists()) {
+			cSetDebug(true);
+		}
+		if (cBetaVersion()) {
+			cSetDevVersion(false);
+		} else if (!cDevVersion() && QFile(cWorkingDir() + qsl("tdata/devversion")).exists()) {
+			cSetDevVersion(true);
+		} else if (DevVersion) {
+			QFile f(cWorkingDir() + qsl("tdata/devversion"));
+			if (!f.exists() && f.open(QIODevice::WriteOnly)) {
+				f.write("1");
+			}
+		}
+	}
+
+	void start() {
+		SandboxData = new SandboxDataStruct();
+
+		SandboxData->LangSystemISO = psCurrentLanguage();
+		if (SandboxData->LangSystemISO.isEmpty()) SandboxData->LangSystemISO = qstr("en");
+		QByteArray l = LangSystemISO().toLatin1();
+		for (int32 i = 0; i < languageCount; ++i) {
+			if (l.at(0) == LanguageCodes[i][0] && l.at(1) == LanguageCodes[i][1]) {
+				SandboxData->LangSystem = i;
+				break;
+			}
+		}
+
+		srand((int32)time(NULL));
+	}
+
+	void finish() {
+		delete SandboxData;
+		SandboxData = 0;
+	}
+
+	DefineReadOnlyVar(Sandbox, QString, LangSystemISO);
+	DefineReadOnlyVar(Sandbox, int32, LangSystem);
+	DefineVar(Sandbox, QByteArray, LastCrashDump);
+	DefineVar(Sandbox, ConnectionProxy, PreLaunchProxy);
+
+}
+
+struct GlobalDataStruct {
+	uint64 LaunchId = 0;
+	Adaptive::Layout AdaptiveLayout = Adaptive::NormalLayout;
+};
+GlobalDataStruct *GlobalData = 0;
+
 namespace Global {
 
-	struct Data {
-		uint64 LaunchId = 0;
-	};
-
-	Data *_data = 0;
-
-	Initializer::Initializer() {
-		initThirdParty();
-		_data = new Data();
-
-		memset_rand(&_data->LaunchId, sizeof(_data->LaunchId));
+	bool started() {
+		return GlobalData != 0;
 	}
 
-	Initializer::~Initializer() {
-		deinitThirdParty();
+	void start() {
+		GlobalData = new GlobalDataStruct();
+
+		memset_rand(&GlobalData->LaunchId, sizeof(GlobalData->LaunchId));
 	}
 
-#define DefineGlobalReadOnly(Type, Name) const Type &Name() { \
-	t_assert_full(_data != 0, "_data is null in Global::" #Name, __FILE__, __LINE__); \
-	return _data->Name; \
-}
-#define DefineGlobal(Type, Name) DefineGlobalReadOnly(Type, Name) \
-void Set##Name(const Type &Name) { \
-	t_assert_full(_data != 0, "_data is null in Global::Set" #Name, __FILE__, __LINE__); \
-	_data->Name = Name; \
-} \
-Type &Ref##Name() { \
-	t_assert_full(_data != 0, "_data is null in Global::Ref" #Name, __FILE__, __LINE__); \
-	return _data->Name; \
-}
+	void finish() {
+		delete GlobalData;
+		GlobalData = 0;
+	}
 
-	DefineGlobalReadOnly(uint64, LaunchId);
+	DefineReadOnlyVar(Global, uint64, LaunchId);
+	DefineVar(Global, Adaptive::Layout, AdaptiveLayout);
 
 };

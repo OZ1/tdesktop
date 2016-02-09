@@ -32,6 +32,20 @@ Install dev libraries
 
     sudo apt-get install libexif-dev liblzma-dev libz-dev libssl-dev libappindicator-dev libunity-dev
 
+####zlib 1.2.8
+
+http://www.zlib.net/ > Download [**zlib source code, version 1.2.8, zipfile format**](http://zlib.net/zlib128.zip)
+
+Extract to **/home/user/TBuild/Libraries**
+
+#####Building library
+
+In Terminal go to **/home/user/TBuild/Libraries/zlib-1.2.8** and run:
+
+        ./configure
+        make
+        sudo make install
+
 Install audio libraries
 
 ####Opus codec 1.1
@@ -127,6 +141,17 @@ In Terminal go to **/home/user/TBuild/Libraries/QtStatic** and there run
     sudo make -j4 install
 
 building (**make** command) will take really long time.
+
+####Google Breakpad
+
+In Terminal go to **/home/user/TBuild/Libraries** and run
+
+    git clone https://chromium.googlesource.com/breakpad/breakpad
+    git clone https://chromium.googlesource.com/linux-syscall-support breakpad/src/third_party/lss
+    cd breakpad
+    ./configure
+    make
+    sudo make install
 
 ###Building Telegram Desktop
 

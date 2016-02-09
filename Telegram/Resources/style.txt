@@ -16,7 +16,7 @@ In addition, as a special exception, the copyright holders give permission
 to link the code of portions of this program with the OpenSSL library.
 
 Full license: https://github.com/telegramdesktop/tdesktop/blob/master/LICENSE
-Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
+Copyright (c) 2014-2016 John Preston, https://desktop.telegram.org
 */
 defaultFontFamily: 'Open Sans';
 semibold: 'Open Sans Semibold';
@@ -51,7 +51,10 @@ color7: #2996ad; // sea
 color8: #ce671b; // orange
 
 wndMinWidth: 380px;
-wideModeWidth: 640px;
+
+adaptiveNormalWidth: 640px;
+adaptiveWideWidth: 1120px;
+
 wndMinHeight: 480px;
 wndDefWidth: 800px;
 wndDefHeight: 600px;
@@ -269,6 +272,21 @@ defaultPopupMenu: PopupMenu {
 	widthMin: 180px;
 	widthMax: 300px;
 }
+
+defaultTooltip: Tooltip {
+	textBg: #eef2f5;
+	textFg: #5d6c80;
+	textFont: normalFont;
+	textBorder: #c9d1db;
+	textPadding: margins(5px, 2px, 5px, 2px);
+
+	shift: point(-20px, 20px);
+	skip: 10px;
+
+	widthMax: 800px;
+	linesMax: 12;
+}
+
 almostTransparent: #ffffff0d;
 boxScroll: flatScroll(solidScroll) {
 	width: 18px;
@@ -999,6 +1017,8 @@ historyToEndSkip: 10px;
 activeFadeInDuration: 500;
 activeFadeOutDuration: 3000;
 
+historyMaxWidth: 640px;
+
 msgRadius: 3px;
 
 msgMaxWidth: 430px;
@@ -1264,9 +1284,6 @@ msgFileBlue: sprite(60px, 425px, 20px, 20px);
 
 msgFileOverDuration: 200;
 msgFileRadialLine: 3px;
-
-msgFileExtPadding: 8px;
-msgFileExtTop: 30px;
 
 msgVideoSize: size(320px, 240px);
 
@@ -2180,6 +2197,9 @@ overviewFileStatusTop: 27px;
 overviewFileDateTop: 49px;
 overviewFileChecked: #2fa9e2;
 overviewFileCheck: #00000066;
+overviewFileExtPadding: 5px;
+overviewFileExtTop: 24px;
+overviewFileExtFont: font(18px semibold);
 
 // Mac specific
 

@@ -16,7 +16,7 @@ In addition, as a special exception, the copyright holders give permission
 to link the code of portions of this program with the OpenSSL library.
 
 Full license: https://github.com/telegramdesktop/tdesktop/blob/master/LICENSE
-Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
+Copyright (c) 2014-2016 John Preston, https://desktop.telegram.org
 */
 #include "stdafx.h"
 #include "style.h"
@@ -1918,11 +1918,6 @@ void History::addOlderSlice(const QVector<MTPMessage> &slice, const QVector<MTPM
 	const MTPMessageGroup *groupsBegin = (isChannel() && collapsed) ? collapsed->constData() : 0, *groupsIt = groupsBegin, *groupsEnd = (isChannel() && collapsed) ? (groupsBegin + collapsed->size()) : 0;
 
 	HistoryItem *oldFirst = 0, *last = 0;
-	if (!blocks.isEmpty()) {
-		t_assert(blocks.size() > 1);
-		oldFirst = blocks.at(1)->items.front();
-	}
-
 	HistoryBlock *block = new HistoryBlock(this);
 	block->items.reserve(slice.size() + (collapsed ? collapsed->size() : 0));
 	for (QVector<MTPmessage>::const_iterator i = slice.cend(), e = slice.cbegin(); i != e;) {
@@ -1947,6 +1942,10 @@ void History::addOlderSlice(const QVector<MTPMessage> &slice, const QVector<MTPM
 		last = addMessageGroupAfterPrevToBlock(group, last, block);
 	}
 
+	if (!blocks.isEmpty()) {
+		t_assert(blocks.size() > 1);
+		oldFirst = blocks.at(1)->items.front();
+	}
 	while (oldFirst && last && oldFirst->type() == HistoryItemGroup && last->type() == HistoryItemGroup) {
 		static_cast<HistoryGroup*>(last)->uniteWith(static_cast<HistoryGroup*>(oldFirst));
 		oldFirst->destroy();
@@ -2601,10 +2600,10 @@ void History::overviewSliceDone(int32 overviewIndex, const MTPmessages_Messages 
 		if (peer->isChannel()) {
 			peer->asChannel()->ptsReceived(d.vpts.v);
 		} else {
-			LOG(("API Error: received messages.channelMessages when no channel was passed! (History::overviewSliceDone, onlyCounts %1)").arg(logBool(onlyCounts)));
+			LOG(("API Error: received messages.channelMessages when no channel was passed! (History::overviewSliceDone, onlyCounts %1)").arg(Logs::b(onlyCounts)));
 		}
 		if (d.has_collapsed()) { // should not be returned
-			LOG(("API Error: channels.getMessages and messages.getMessages should not return collapsed groups! (History::overviewSliceDone, onlyCounts %1)").arg(logBool(onlyCounts)));
+			LOG(("API Error: channels.getMessages and messages.getMessages should not return collapsed groups! (History::overviewSliceDone, onlyCounts %1)").arg(Logs::b(onlyCounts)));
 		}
 
 		App::feedUsers(d.vusers);
@@ -2922,6 +2921,14 @@ void HistoryItem::detachFast() {
 void HistoryItem::setId(MsgId newId) {
 	history()->changeMsgId(id, newId);
 	id = newId;
+}
+
+bool HistoryItem::displayFromPhoto() const {
+	return Adaptive::Wide() || (!out() && !history()->peer->isUser() && !fromChannel());
+}
+
+bool HistoryItem::shiftFromPhoto() const {
+	return Adaptive::Wide() && !out() && !history()->peer->isUser() && !fromChannel();
 }
 
 void HistoryItem::clipCallback(ClipReaderNotification notification) {
@@ -4000,7 +4007,8 @@ HistoryDocument::HistoryDocument(const HistoryDocument &other) : HistoryFileMedi
 , _linkcancell(new DocumentCancelLink(_data))
 , _name(other._name)
 , _namew(other._namew)
-, _thumbw(other._thumbw) {
+, _thumbw(other._thumbw)
+, _caption(other._caption) {
 	setLinks(new DocumentOpenLink(_data), new DocumentSaveLink(_data), new DocumentCancelLink(_data));
 
 	setStatusSize(other._statusSize);
@@ -4378,6 +4386,7 @@ HistoryGif::HistoryGif(const HistoryGif &other) : HistoryFileMedia()
 , _data(other._data)
 , _thumbw(other._thumbw)
 , _thumbh(other._thumbh)
+, _caption(other._caption)
 , _gif(0) {
 	setLinks(new GifOpenLink(_data), new GifOpenLink(_data), new DocumentCancelLink(_data));
 
@@ -4603,7 +4612,7 @@ void HistoryGif::draw(Painter &p, const HistoryItem *parent, const QRect &r, boo
 	if (!_caption.isEmpty()) {
 		p.setPen(st::black);
 		_caption.draw(p, st::msgPadding.left(), skipy + height + st::mediaPadding.bottom() + st::mediaCaptionSkip, captionw);
-	} else if (parent->getMedia() == this) {
+	} else if (parent->getMedia() == this && (_data->uploading() || App::hoveredItem() == parent)) {
 		int32 fullRight = skipx + width, fullBottom = skipy + height;
 		parent->drawInfo(p, fullRight, fullBottom, 2 * skipx + width, selected, InfoDisplayOverImage);
 	}
@@ -6208,22 +6217,34 @@ void HistoryMessage::initDimensions() {
 }
 
 void HistoryMessage::countPositionAndSize(int32 &left, int32 &width) const {
-	int32 mwidth = qMin(int(st::msgMaxWidth), _maxw);
-	if (_media && _media->currentWidth() < mwidth) {
-		mwidth = qMax(_media->currentWidth(), qMin(mwidth, plainMaxWidth()));
+	int32 maxwidth = qMin(int(st::msgMaxWidth), _maxw), hwidth = _history->width, hmaxwidth = st::historyMaxWidth + (Adaptive::Wide() ? (2 * st::msgPhotoSkip) : 0);
+	if (_media && _media->currentWidth() < maxwidth) {
+		maxwidth = qMax(_media->currentWidth(), qMin(maxwidth, plainMaxWidth()));
 	}
 
-	left = (!fromChannel() && out()) ? st::msgMargin.right() : st::msgMargin.left();
+	left = 0;
+	if (hwidth > hmaxwidth) {
+		left = (hwidth - hmaxwidth) / 2;
+		hwidth = hmaxwidth;
+	}
+	left += (!fromChannel() && out()) ? st::msgMargin.right() : st::msgMargin.left();
 	if (displayFromPhoto()) {
-		left += st::msgPhotoSkip;
+		if (!fromChannel() && out()) {
+			left -= st::msgPhotoSkip;
+		} else {
+			left += st::msgPhotoSkip;
+			if (shiftFromPhoto()) {
+				left += st::msgPhotoSkip;
+			}
+		}
 	}
 
-	width = _history->width - st::msgMargin.left() - st::msgMargin.right();
-	if (width > mwidth) {
+	width = hwidth - st::msgMargin.left() - st::msgMargin.right();
+	if (width > maxwidth) {
 		if (!fromChannel() && out()) {
-			left += width - mwidth;
+			left += width - maxwidth;
 		}
-		width = mwidth;
+		width = maxwidth;
 	}
 }
 
@@ -6474,7 +6495,8 @@ void HistoryMessage::draw(Painter &p, const QRect &r, uint32 selection, uint64 m
 	}
 
 	if (displayFromPhoto()) {
-		p.drawPixmap(left - st::msgPhotoSkip, _height - st::msgMargin.bottom() - st::msgPhotoSize, _from->photo->pixRounded(st::msgPhotoSize));
+		int32 photoleft = left + ((!fromChannel() && out()) ? (width + (st::msgPhotoSkip - st::msgPhotoSize)) : (-st::msgPhotoSkip));
+		p.drawPixmap(photoleft, _height - st::msgMargin.bottom() - st::msgPhotoSize, _from->photo->pixRounded(st::msgPhotoSize));
 	}
 	if (width < 1) return;
 
@@ -6641,7 +6663,8 @@ void HistoryMessage::getState(TextLinkPtr &lnk, HistoryCursorState &state, int32
 	int32 left = 0, width = 0;
 	countPositionAndSize(left, width);
 	if (displayFromPhoto()) {
-		if (x >= left - st::msgPhotoSkip && x < left - st::msgPhotoSkip + st::msgPhotoSize && y >= _height - st::msgMargin.bottom() - st::msgPhotoSize && y < _height - st::msgMargin.bottom()) {
+		int32 photoleft = left + ((!fromChannel() && out()) ? (width + (st::msgPhotoSkip - st::msgPhotoSize)) : (-st::msgPhotoSkip));
+		if (x >= photoleft && x < photoleft + st::msgPhotoSize && y >= _height - st::msgMargin.bottom() - st::msgPhotoSize && y < _height - st::msgMargin.bottom()) {
 			lnk = _from->lnk;
 			return;
 		}
@@ -6905,7 +6928,8 @@ void HistoryForwarded::getState(TextLinkPtr &lnk, HistoryCursorState &state, int
 		int32 left = 0, width = 0;
 		countPositionAndSize(left, width);
 		if (displayFromPhoto()) {
-			if (x >= left - st::msgPhotoSkip && x < left - st::msgPhotoSkip + st::msgPhotoSize) {
+			int32 photoleft = left + ((!fromChannel() && out()) ? (width + (st::msgPhotoSkip - st::msgPhotoSize)) : (-st::msgPhotoSkip));
+			if (x >= photoleft && x < photoleft + st::msgPhotoSize) {
 				return HistoryMessage::getState(lnk, state, x, y);
 			}
 		}
@@ -7224,8 +7248,9 @@ void HistoryReply::getState(TextLinkPtr &lnk, HistoryCursorState &state, int32 x
 	if (drawBubble()) {
 		int32 left = 0, width = 0;
 		countPositionAndSize(left, width);
-		if (displayFromPhoto()) { // from user left photo
-			if (x >= left - st::msgPhotoSkip && x < left - st::msgPhotoSkip + st::msgPhotoSize) {
+		if (displayFromPhoto()) {
+			int32 photoleft = left + ((!fromChannel() && out()) ? (width + (st::msgPhotoSkip - st::msgPhotoSize)) : (-st::msgPhotoSkip));
+			if (x >= photoleft && x < photoleft + st::msgPhotoSize) {
 				return HistoryMessage::getState(lnk, state, x, y);
 			}
 		}

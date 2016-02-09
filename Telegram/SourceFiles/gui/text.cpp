@@ -16,7 +16,7 @@ In addition, as a special exception, the copyright holders give permission
 to link the code of portions of this program with the OpenSSL library.
 
 Full license: https://github.com/telegramdesktop/tdesktop/blob/master/LICENSE
-Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
+Copyright (c) 2014-2016 John Preston, https://desktop.telegram.org
 */
 #include "stdafx.h"
 #include "text.h"
@@ -36,7 +36,7 @@ namespace {
 	const QRegularExpression _reMailName(qsl("[a-zA-Z\\-_\\.0-9]{1,256}$"));
 	const QRegularExpression _reMailStart(qsl("^[a-zA-Z\\-_\\.0-9]{1,256}\\@"));
 	const QRegularExpression _reHashtag(qsl("(^|[\\s\\.,:;<>|'\"\\[\\]\\{\\}`\\~\\!\\%\\^\\*\\(\\)\\-\\+=\\x10])#[\\w]{2,64}([\\W]|$)"), QRegularExpression::UseUnicodePropertiesOption);
-	const QRegularExpression _reMention(qsl("(^|[\\s\\.,:;<>|'\"\\[\\]\\{\\}`\\~\\!\\%\\^\\*\\(\\)\\-\\+=\\x10])@[A-Za-z_0-9]{3,32}([\\W]|$)"), QRegularExpression::UseUnicodePropertiesOption);
+	const QRegularExpression _reMention(qsl("(^|[\\s\\.,:;<>|'\"\\[\\]\\{\\}`\\~\\!\\%\\^\\*\\(\\)\\-\\+=\\x10])@[A-Za-z_0-9]{1,32}([\\W]|$)"), QRegularExpression::UseUnicodePropertiesOption);
 	const QRegularExpression _reBotCommand(qsl("(^|[\\s\\.,:;<>|'\"\\[\\]\\{\\}`\\~\\!\\%\\^\\*\\(\\)\\-\\+=\\x10])/[A-Za-z_0-9]{1,64}(@[A-Za-z_0-9]{5,32})?([\\W]|$)"));
 	const QRegularExpression _rePre(qsl("(^|[\\s\\.,:;<>|'\"\\[\\]\\{\\}`\\~\\!\\?\\%\\^\\*\\(\\)\\-\\+=\\x10])(````?)[\\s\\S]+?(````?)([\\s\\.,:;<>|'\"\\[\\]\\{\\}`\\~\\!\\?\\%\\^\\*\\(\\)\\-\\+=\\x10]|$)"), QRegularExpression::UseUnicodePropertiesOption);
 	const QRegularExpression _reCode(qsl("(^|[\\s\\.,:;<>|'\"\\[\\]\\{\\}`\\~\\!\\?\\%\\^\\*\\(\\)\\-\\+=\\x10])(`)[^\\n]+?(`)([\\s\\.,:;<>|'\"\\[\\]\\{\\}`\\~\\!\\?\\%\\^\\*\\(\\)\\-\\+=\\x10]|$)"), QRegularExpression::UseUnicodePropertiesOption);
@@ -886,6 +886,8 @@ namespace {
 
 void TextLink::onClick(Qt::MouseButton button) const {
 	if (button == Qt::LeftButton || button == Qt::MiddleButton) {
+		PopupTooltip::Hide();
+
 		QString url = TextLink::encoded();
 		QRegularExpressionMatch telegramMeUser = QRegularExpression(qsl("^https?://telegram\\.me/([a-zA-Z0-9\\.\\_]+)/?(\\?|$)"), QRegularExpression::CaseInsensitiveOption).match(url);
 		QRegularExpressionMatch telegramMeGroup = QRegularExpression(qsl("^https?://telegram\\.me/joinchat/([a-zA-Z0-9\\.\\_\\-]+)(\\?|$)"), QRegularExpression::CaseInsensitiveOption).match(url);
@@ -912,6 +914,7 @@ void TextLink::onClick(Qt::MouseButton button) const {
 
 void EmailLink::onClick(Qt::MouseButton button) const {
 	if (button == Qt::LeftButton || button == Qt::MiddleButton) {
+		PopupTooltip::Hide();
 		QUrl url(qstr("mailto:") + _email);
 		if (!QDesktopServices::openUrl(url)) {
 			psOpenFile(url.toString(QUrl::FullyEncoded), true);
@@ -2571,15 +2574,6 @@ void Text::setMarkedText(style::font font, const QString &text, const EntitiesIn
 	_font = font;
 	clean();
 	{
-//		QByteArray ba = text.toUtf8(); // chars for OS X crash investigation
-//		const char *ch = ba.constData();
-//		LOG(("STR: %1").arg(text));
-//		LOG(("BYTES: %1").arg(mb(ba.constData(), ba.size()).str()));
-//		for (int32 i = 0; i < text.size(); ++i) {
-//			LOG(("LETTER %1: '%2' - %3").arg(i).arg(text.at(i)).arg(text.at(i).unicode()));
-//		}
-//		int32 w = _font->width(text);
-
 //		QString newText; // utf16 of the text for emoji
 //		newText.reserve(8 * text.size());
 //		for (const QChar *ch = text.constData(), *e = ch + text.size(); ch != e; ++ch) {
@@ -2720,6 +2714,111 @@ void Text::removeSkipBlock() {
 		_blocks.pop_back();
 		recountNaturalSize(false);
 	}
+}
+
+int32 Text::countWidth(int32 w) const {
+	QFixed width = w;
+	if (width < _minResizeWidth) width = _minResizeWidth;
+	if (width >= _maxWidth) {
+		return _maxWidth.ceil().toInt();
+	}
+
+	QFixed minWidthLeft = width, widthLeft = width, last_rBearing = 0, last_rPadding = 0;
+	bool longWordLine = true;
+	for (TextBlocks::const_iterator i = _blocks.cbegin(), e = _blocks.cend(); i != e; ++i) {
+		ITextBlock *b = *i;
+		TextBlockType _btype = b->type();
+		int32 blockHeight = _blockHeight(b, _font);
+		QFixed _rb = _blockRBearing(b);
+
+		if (_btype == TextBlockTNewline) {
+			last_rBearing = _rb;
+			last_rPadding = b->f_rpadding();
+			if (widthLeft < minWidthLeft) {
+				minWidthLeft = widthLeft;
+			}
+			widthLeft = width - (b->f_width() - last_rBearing);
+
+			longWordLine = true;
+			continue;
+		}
+		QFixed lpadding = b->f_lpadding();
+		QFixed newWidthLeft = widthLeft - lpadding - last_rBearing - (last_rPadding + b->f_width() - _rb);
+		if (newWidthLeft >= 0) {
+			last_rBearing = _rb;
+			last_rPadding = b->f_rpadding();
+			widthLeft = newWidthLeft;
+
+			longWordLine = false;
+			continue;
+		}
+
+		if (_btype == TextBlockTText) {
+			TextBlock *t = static_cast<TextBlock*>(b);
+			if (t->_words.isEmpty()) { // no words in this block, spaces only => layout this block in the same line
+				last_rPadding += lpadding;
+
+				longWordLine = false;
+				continue;
+			}
+
+			QFixed f_wLeft = widthLeft;
+			for (TextBlock::TextWords::const_iterator j = t->_words.cbegin(), e = t->_words.cend(), f = j; j != e; ++j) {
+				bool wordEndsHere = (j->width >= 0);
+				QFixed j_width = wordEndsHere ? j->width : -j->width;
+
+				QFixed newWidthLeft = widthLeft - lpadding - last_rBearing - (last_rPadding + j_width - j->f_rbearing());
+				lpadding = 0;
+				if (newWidthLeft >= 0) {
+					last_rBearing = j->f_rbearing();
+					last_rPadding = j->rpadding;
+					widthLeft = newWidthLeft;
+
+					if (wordEndsHere) {
+						longWordLine = false;
+					}
+					if (wordEndsHere || longWordLine) {
+						f_wLeft = widthLeft;
+						f = j + 1;
+					}
+					continue;
+				}
+
+				if (f != j) {
+					j = f;
+					widthLeft = f_wLeft;
+					j_width = (j->width >= 0) ? j->width : -j->width;
+				}
+
+				last_rBearing = j->f_rbearing();
+				last_rPadding = j->rpadding;
+				if (widthLeft < minWidthLeft) {
+					minWidthLeft = widthLeft;
+				}
+				widthLeft = width - (j_width - last_rBearing);
+
+				longWordLine = true;
+				f = j + 1;
+				f_wLeft = widthLeft;
+			}
+			continue;
+		}
+
+		last_rBearing = _rb;
+		last_rPadding = b->f_rpadding();
+		if (widthLeft < minWidthLeft) {
+			minWidthLeft = widthLeft;
+		}
+		widthLeft = width - (b->f_width() - last_rBearing);
+
+		longWordLine = true;
+		continue;
+	}
+	if (widthLeft < minWidthLeft) {
+		minWidthLeft = widthLeft;
+	}
+
+	return (width - minWidthLeft).ceil().toInt();
 }
 
 int32 Text::countHeight(int32 w) const {

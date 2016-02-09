@@ -16,7 +16,7 @@ In addition, as a special exception, the copyright holders give permission
 to link the code of portions of this program with the OpenSSL library.
 
 Full license: https://github.com/telegramdesktop/tdesktop/blob/master/LICENSE
-Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
+Copyright (c) 2014-2016 John Preston, https://desktop.telegram.org
 */
 #include "stdafx.h"
 #include "style.h"
@@ -75,8 +75,6 @@ HistoryInner::HistoryInner(HistoryWidget *historyWidget, ScrollArea *scroll, His
 , _menu(0) {
 	connect(App::wnd(), SIGNAL(imageLoaded()), this, SLOT(update()));
 
-	_tooltipTimer.setSingleShot(true);
-	connect(&_tooltipTimer, SIGNAL(timeout()), this, SLOT(showLinkTip()));
 	_touchSelectTimer.setSingleShot(true);
 	connect(&_touchSelectTimer, SIGNAL(timeout()), this, SLOT(onTouchSelect()));
 
@@ -458,6 +456,7 @@ void HistoryInner::touchScrollUpdated(const QPoint &screenPos) {
 QPoint HistoryInner::mapMouseToItem(QPoint p, HistoryItem *item) {
 	int32 msgy = itemTop(item);
 	if (msgy < 0) return QPoint(0, 0);
+
 	p.setY(p.y() - msgy);
 	return p;
 }
@@ -631,7 +630,7 @@ void HistoryInner::onDragExec() {
 
 		mimeData->setText(sel);
 		if (!urls.isEmpty()) mimeData->setUrls(urls);
-		if (uponSelected && !_selected.isEmpty() && _selected.cbegin().value() == FullSelection && cWideMode()) {
+		if (uponSelected && !_selected.isEmpty() && _selected.cbegin().value() == FullSelection && !Adaptive::OneColumn()) {
 			mimeData->setData(qsl("application/x-td-forward-selected"), "1");
 		}
 		drag->setMimeData(mimeData);
@@ -1616,7 +1615,7 @@ void HistoryInner::onUpdateSelected() {
 			}
 		}
 		textlnkOver(lnk);
-		QToolTip::hideText();
+		PopupTooltip::Hide();
 		App::hoveredLinkItem((lnk && !lnkInDesc) ? item : 0);
 		if (textlnkOver()) {
 			if (HistoryItem *item = App::hoveredLinkItem()) {
@@ -1627,11 +1626,11 @@ void HistoryInner::onUpdateSelected() {
 			}
 		}
 	}
-	if (lnk || cursorState == HistoryInDateCursorState) {
-		_tooltipTimer.start(1000);
-	}
 	if (_dragCursorState == HistoryInDateCursorState && cursorState != HistoryInDateCursorState) {
-		QToolTip::hideText();
+		PopupTooltip::Hide();
+	}
+	if (lnk || cursorState == HistoryInDateCursorState) {
+		PopupTooltip::Show(1000, this);
 	}
 
 	if (_dragAction == NoDrag) {
@@ -1868,18 +1867,20 @@ void HistoryInner::applyDragSelection(SelectedItems *toItems) const {
 	}
 }
 
-void HistoryInner::showLinkTip() {
+QString HistoryInner::tooltipText() const {
 	TextLinkPtr lnk = textlnkOver();
-	int32 dd = QApplication::startDragDistance();
-	QPoint dp(mapFromGlobal(_dragPos));
-	QRect r(dp.x() - dd, dp.y() - dd, 2 * dd, 2 * dd);
 	if (lnk && !lnk->fullDisplayed()) {
-		QToolTip::showText(_dragPos, lnk->readable(), this, r);
+		return lnk->readable();
 	} else if (_dragCursorState == HistoryInDateCursorState && _dragAction == NoDrag) {
 		if (App::hoveredItem()) {
-			QToolTip::showText(_dragPos, App::hoveredItem()->date.toString(QLocale::system().dateTimeFormat(QLocale::LongFormat)), this, r);
+			return App::hoveredItem()->date.toString(QLocale::system().dateTimeFormat(QLocale::LongFormat));
 		}
 	}
+	return QString();
+}
+
+QPoint HistoryInner::tooltipPos() const {
+	return _dragPos;
 }
 
 void HistoryInner::onParentGeometryChanged() {
@@ -1986,7 +1987,7 @@ void ReportSpamPanel::resizeEvent(QResizeEvent *e) {
 void ReportSpamPanel::paintEvent(QPaintEvent *e) {
 	Painter p(this);
 	p.fillRect(QRect(0, 0, width(), height() - st::lineWidth), st::reportSpamBg->b);
-	p.fillRect(cWideMode() ? st::lineWidth : 0, height() - st::lineWidth, width() - (cWideMode() ? st::lineWidth : 0), st::lineWidth, st::shadowColor->b);
+	p.fillRect(Adaptive::OneColumn() ? 0 : st::lineWidth, height() - st::lineWidth, width() - (Adaptive::OneColumn() ? 0 : st::lineWidth), st::lineWidth, st::shadowColor->b);
 	if (!_clear.isHidden()) {
 		p.setPen(st::black->p);
 		p.setFont(st::msgFont->f);
@@ -2019,9 +2020,6 @@ BotKeyboard::BotKeyboard() : TWidget()
 	setGeometry(0, 0, _st->margin, _st->margin);
 	_height = _st->margin;
 	setMouseTracking(true);
-
-	_cmdTipTimer.setSingleShot(true);
-	connect(&_cmdTipTimer, SIGNAL(timeout()), this, SLOT(showCommandTip()));
 }
 
 void BotKeyboard::paintEvent(QPaintEvent *e) {
@@ -2261,20 +2259,22 @@ void BotKeyboard::clearSelection() {
 	}
 }
 
-void BotKeyboard::showCommandTip() {
+QPoint BotKeyboard::tooltipPos() const {
+	return _lastMousePos;
+}
+
+QString BotKeyboard::tooltipText() const {
 	if (_sel >= 0) {
 		int row = (_sel / MatrixRowShift), col = _sel % MatrixRowShift;
 		if (!_btns.at(row).at(col).full) {
-			int32 dd = QApplication::startDragDistance();
-			QPoint dp(mapFromGlobal(_lastMousePos));
-			QRect r(dp.x() - dd, dp.y() - dd, 2 * dd, 2 * dd);
-			QToolTip::showText(_lastMousePos, _btns.at(row).at(col).cmd, this, r);
+			return _btns.at(row).at(col).cmd;
 		}
 	}
+	return QString();
 }
 
 void BotKeyboard::updateSelected() {
-	_cmdTipTimer.start(1000);
+	PopupTooltip::Show(1000, this);
 
 	if (_down >= 0) return;
 
@@ -2294,7 +2294,7 @@ void BotKeyboard::updateSelected() {
 		if (newSel >= 0) break;
 	}
 	if (newSel != _sel) {
-		QToolTip::hideText();
+		PopupTooltip::Hide();
 		if (newSel < 0) {
 			setCursor(style::cur_default);
 		} else if (_sel < 0) {
@@ -2473,15 +2473,15 @@ void HistoryHider::mousePressEvent(QMouseEvent *e) {
 void HistoryHider::startHide() {
 	if (hiding) return;
 	hiding = true;
-	if (cWideMode()) {
+	if (Adaptive::OneColumn()) {
+		QTimer::singleShot(0, this, SLOT(deleteLater()));
+	} else {
 		if (offered) cacheForAnim = myGrab(this, box);
 		if (_forwardRequest) MTP::cancel(_forwardRequest);
 		a_opacity.start(0);
 		_send.hide();
 		_cancel.hide();
 		_a_appearance.start();
-	} else {
-		QTimer::singleShot(0, this, SLOT(deleteLater()));
 	}
 }
 
@@ -2801,7 +2801,7 @@ HistoryWidget::HistoryWidget(QWidget *parent) : TWidget(parent)
 	_attachDragPhoto.hide();
 
 	_topShadow.hide();
-	_sideShadow.setVisible(cWideMode());
+	_sideShadow.setVisible(!Adaptive::OneColumn());
 
 	connect(&_attachDragDocument, SIGNAL(dropped(const QMimeData*)), this, SLOT(onDocumentDrop(const QMimeData*)));
 	connect(&_attachDragPhoto, SIGNAL(dropped(const QMimeData*)), this, SLOT(onPhotoDrop(const QMimeData*)));
@@ -2838,12 +2838,12 @@ void HistoryWidget::updateInlineBotQuery() {
 	QString query = _field.getInlineBotQuery(_inlineBot, _inlineBotUsername);
 	if (inlineBotUsername != _inlineBotUsername) {
 		if (_inlineBotResolveRequestId) {
-			Notify::inlineBotRequesting(false);
+//			Notify::inlineBotRequesting(false);
 			MTP::cancel(_inlineBotResolveRequestId);
 			_inlineBotResolveRequestId = 0;
 		}
 		if (_inlineBot == InlineBotLookingUpData) {
-			Notify::inlineBotRequesting(true);
+//			Notify::inlineBotRequesting(true);
 			_inlineBotResolveRequestId = MTP::send(MTPcontacts_ResolveUsername(MTP_string(_inlineBotUsername)), rpcDone(&HistoryWidget::inlineBotResolveDone), rpcFail(&HistoryWidget::inlineBotResolveFail, _inlineBotUsername));
 			return;
 		}
@@ -4671,7 +4671,7 @@ void HistoryWidget::step_show(float64 ms, bool timer) {
 	float64 dt = ms / st::slideDuration;
 	if (dt >= 1) {
 		_a_show.stop();
-		_sideShadow.setVisible(cWideMode());
+		_sideShadow.setVisible(!Adaptive::OneColumn());
 		_topShadow.setVisible(_peer ? true : false);
 
 		a_coordUnder.finish();
@@ -4705,14 +4705,14 @@ void HistoryWidget::doneShow() {
 	}
 }
 
-void HistoryWidget::updateWideMode() {
-	_sideShadow.setVisible(cWideMode());
+void HistoryWidget::updateAdaptiveLayout() {
+	_sideShadow.setVisible(!Adaptive::OneColumn());
 }
 
 void HistoryWidget::animStop() {
 	if (!_a_show.animating()) return;
 	_a_show.stop();
-	_sideShadow.setVisible(cWideMode());
+	_sideShadow.setVisible(!Adaptive::OneColumn());
 	_topShadow.setVisible(_peer ? true : false);
 }
 
@@ -4804,9 +4804,10 @@ void HistoryWidget::onDocumentSelect() {
 	}
 }
 
-
 void HistoryWidget::dragEnterEvent(QDragEnterEvent *e) {
 	if (!_history) return;
+
+	if (_peer && (_peer->isChannel() && !_peer->asChannel()->canPublish())) return;
 
 	_attachDrag = getDragState(e->mimeData());
 	updateDragAreas();
@@ -5065,7 +5066,7 @@ bool HistoryWidget::hasBroadcastToggle() const {
 
 void HistoryWidget::inlineBotResolveDone(const MTPcontacts_ResolvedPeer &result) {
 	_inlineBotResolveRequestId = 0;
-	Notify::inlineBotRequesting(false);
+//	Notify::inlineBotRequesting(false);
 	_inlineBotUsername = QString();
 	if (result.type() == mtpc_contacts_resolvedPeer) {
 		const MTPDcontacts_resolvedPeer &d(result.c_contacts_resolvedPeer());
@@ -5079,7 +5080,7 @@ bool HistoryWidget::inlineBotResolveFail(QString name, const RPCError &error) {
 	if (mtpIsFlood(error)) return false;
 
 	_inlineBotResolveRequestId = 0;
-	Notify::inlineBotRequesting(false);
+//	Notify::inlineBotRequesting(false);
 	if (name == _inlineBotUsername) {
 		_inlineBot = 0;
 		onCheckMentionDropdown();
@@ -5150,6 +5151,8 @@ void HistoryWidget::onPhotoDrop(const QMimeData *data) {
 void HistoryWidget::onDocumentDrop(const QMimeData *data) {
 	if (!_history) return;
 
+	if (_peer && (_peer->isChannel() && !_peer->asChannel()->canPublish())) return;
+
 	QStringList files = getMediasFromMime(data);
 	if (files.isEmpty()) return;
 
@@ -5157,6 +5160,9 @@ void HistoryWidget::onDocumentDrop(const QMimeData *data) {
 }
 
 void HistoryWidget::onFilesDrop(const QMimeData *data) {
+
+	if (_peer && (_peer->isChannel() && !_peer->asChannel()->canPublish())) return;
+
 	QStringList files = getMediasFromMime(data);
 	if (files.isEmpty()) {
 		if (data->hasImage()) {
@@ -5295,7 +5301,7 @@ void HistoryWidget::paintTopBar(QPainter &p, float64 over, int32 decreaseWidth) 
 
 	if (!_history) return;
 
-	int32 increaseLeft = cWideMode() ? 0 : (st::topBarForwardPadding.right() - st::topBarForwardPadding.left());
+	int32 increaseLeft = Adaptive::OneColumn() ? (st::topBarForwardPadding.right() - st::topBarForwardPadding.left()) : 0;
 	decreaseWidth += increaseLeft;
 	QRect rectForName(st::topBarForwardPadding.left() + increaseLeft, st::topBarForwardPadding.top(), width() - decreaseWidth - st::topBarForwardPadding.left() - st::topBarForwardPadding.right(), st::msgNameFont->height);
 	p.setFont(st::dlgHistFont->f);
@@ -5310,20 +5316,20 @@ void HistoryWidget::paintTopBar(QPainter &p, float64 over, int32 decreaseWidth) 
 	p.setPen(st::dlgNameColor->p);
 	_peer->dialogName().drawElided(p, rectForName.left(), rectForName.top(), rectForName.width());
 
-	if (cWideMode()) {
-		p.setOpacity(st::topBarForwardAlpha + (1 - st::topBarForwardAlpha) * over);
-		p.drawPixmap(QPoint(width() - (st::topBarForwardPadding.right() + st::topBarForwardImg.pxWidth()) / 2, (st::topBarHeight - st::topBarForwardImg.pxHeight()) / 2), App::sprite(), st::topBarForwardImg);
-	} else {
+	if (Adaptive::OneColumn()) {
 		p.setOpacity(st::topBarForwardAlpha + (1 - st::topBarForwardAlpha) * over);
 		p.drawPixmap(QPoint((st::topBarForwardPadding.right() - st::topBarBackwardImg.pxWidth()) / 2, (st::topBarHeight - st::topBarBackwardImg.pxHeight()) / 2), App::sprite(), st::topBarBackwardImg);
+	} else {
+		p.setOpacity(st::topBarForwardAlpha + (1 - st::topBarForwardAlpha) * over);
+		p.drawPixmap(QPoint(width() - (st::topBarForwardPadding.right() + st::topBarForwardImg.pxWidth()) / 2, (st::topBarHeight - st::topBarForwardImg.pxHeight()) / 2), App::sprite(), st::topBarForwardImg);
 	}
 }
 
 void HistoryWidget::topBarClick() {
-	if (cWideMode()) {
-		if (_history) App::main()->showPeerProfile(_peer);
-	} else {
+	if (Adaptive::OneColumn()) {
 		Ui::showChatsList();
+	} else {
+		if (_history) App::main()->showPeerProfile(_peer);
 	}
 }
 
@@ -5967,8 +5973,8 @@ void HistoryWidget::resizeEvent(QResizeEvent *e) {
 	break;
 	}
 
-	_topShadow.resize(width() - ((cWideMode() && !_inGrab) ? st::lineWidth : 0), st::lineWidth);
-	_topShadow.moveToLeft((cWideMode() && !_inGrab) ? st::lineWidth : 0, 0);
+	_topShadow.resize(width() - ((!Adaptive::OneColumn() && !_inGrab) ? st::lineWidth : 0), st::lineWidth);
+	_topShadow.moveToLeft((!Adaptive::OneColumn() && !_inGrab) ? st::lineWidth : 0, 0);
 	_sideShadow.resize(st::lineWidth, height());
 	_sideShadow.moveToLeft(0, 0);
 }

@@ -16,7 +16,7 @@ In addition, as a special exception, the copyright holders give permission
 to link the code of portions of this program with the OpenSSL library.
 
 Full license: https://github.com/telegramdesktop/tdesktop/blob/master/LICENSE
-Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
+Copyright (c) 2014-2016 John Preston, https://desktop.telegram.org
 */
 #include "stdafx.h"
 #include "gui/images.h"
@@ -787,11 +787,11 @@ StorageImage::StorageImage(const StorageImageLocation &location, QByteArray &byt
 	}
 }
 
-int32 StorageImage::width() const {
+int32 StorageImage::countWidth() const {
 	return _location.width();
 }
 
-int32 StorageImage::height() const {
+int32 StorageImage::countHeight() const {
 	return _location.height();
 }
 
@@ -917,11 +917,11 @@ StorageImage *getImage(const StorageImageLocation &location, const QByteArray &b
 WebImage::WebImage(const QString &url) : _url(url), _size(0), _width(0), _height(0) {
 }
 
-int32 WebImage::width() const {
+int32 WebImage::countWidth() const {
 	return _width;
 }
 
-int32 WebImage::height() const {
+int32 WebImage::countHeight() const {
 	return _height;
 }
 

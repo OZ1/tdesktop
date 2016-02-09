@@ -16,7 +16,7 @@ In addition, as a special exception, the copyright holders give permission
 to link the code of portions of this program with the OpenSSL library.
 
 Full license: https://github.com/telegramdesktop/tdesktop/blob/master/LICENSE
-Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
+Copyright (c) 2014-2016 John Preston, https://desktop.telegram.org
 */
 #include "stdafx.h"
 #include "style.h"
@@ -293,9 +293,9 @@ void LayoutAbstractFileItem::setStatusSize(int32 newSize, int32 fullSize, int32 
 	}
 }
 
-LayoutOverviewDate::LayoutOverviewDate(const QDate &date, bool month)
-	: _date(date)
-	, _text(month ? langMonthFull(date) : langDayOfMonthFull(date)) {
+LayoutOverviewDate::LayoutOverviewDate(const QDate &date, bool month) : LayoutItem(OverviewItemInfo::Bit())
+, _date(date)
+, _text(month ? langMonthFull(date) : langDayOfMonthFull(date)) {
 }
 
 void LayoutOverviewDate::initDimensions() {
@@ -311,7 +311,7 @@ void LayoutOverviewDate::paint(Painter &p, const QRect &clip, uint32 selection, 
 	}
 }
 
-LayoutOverviewPhoto::LayoutOverviewPhoto(PhotoData *photo, HistoryItem *parent) : LayoutMediaItem(parent)
+LayoutOverviewPhoto::LayoutOverviewPhoto(PhotoData *photo, HistoryItem *parent) : LayoutMediaItem(0, parent)
 , _data(photo)
 , _link(new PhotoLink(photo))
 , _goodLoaded(false) {
@@ -385,7 +385,7 @@ void LayoutOverviewPhoto::getState(TextLinkPtr &link, HistoryCursorState &cursor
 	}
 }
 
-LayoutOverviewVideo::LayoutOverviewVideo(VideoData *video, HistoryItem *parent) : LayoutAbstractFileItem(parent)
+LayoutOverviewVideo::LayoutOverviewVideo(VideoData *video, HistoryItem *parent) : LayoutAbstractFileItem(0, parent)
 , _data(video)
 , _duration(formatDurationText(_data->duration))
 , _thumbLoaded(false) {
@@ -550,7 +550,7 @@ void LayoutOverviewVideo::updateStatusText() const {
 	}
 }
 
-LayoutOverviewAudio::LayoutOverviewAudio(AudioData *audio, HistoryItem *parent) : LayoutAbstractFileItem(parent)
+LayoutOverviewAudio::LayoutOverviewAudio(AudioData *audio, HistoryItem *parent) : LayoutAbstractFileItem(OverviewItemInfo::Bit(), parent)
 , _data(audio)
 , _namel(new AudioOpenLink(_data)) {
 	setLinks(new AudioOpenLink(_data), new AudioOpenLink(_data), new AudioCancelLink(_data));
@@ -738,7 +738,7 @@ bool LayoutOverviewAudio::updateStatusText() const {
 	return showPause;
 }
 
-LayoutOverviewDocument::LayoutOverviewDocument(DocumentData *document, HistoryItem *parent) : LayoutAbstractFileItem(parent)
+LayoutOverviewDocument::LayoutOverviewDocument(DocumentData *document, HistoryItem *parent) : LayoutAbstractFileItem(OverviewItemInfo::Bit(), parent)
 , _data(document)
 , _msgl(new MessageLink(parent))
 , _namel(new DocumentOpenLink(_data))
@@ -764,10 +764,10 @@ LayoutOverviewDocument::LayoutOverviewDocument(DocumentData *document, HistoryIt
 		_thumbw = 0;
 	}
 
-	_extw = st::semiboldFont->width(_ext);
-	if (_extw > st::overviewFileSize - st::msgFileExtPadding * 2) {
-		_ext = st::semiboldFont->elided(_ext, st::overviewFileSize - st::msgFileExtPadding * 2, Qt::ElideMiddle);
-		_extw = st::semiboldFont->width(_ext);
+	_extw = st::overviewFileExtFont->width(_ext);
+	if (_extw > st::overviewFileSize - st::overviewFileExtPadding * 2) {
+		_ext = st::overviewFileExtFont->elided(_ext, st::overviewFileSize - st::overviewFileExtPadding * 2, Qt::ElideMiddle);
+		_extw = st::overviewFileExtFont->width(_ext);
 	}
 }
 
@@ -872,9 +872,9 @@ void LayoutOverviewDocument::paint(Painter &p, const QRect &clip, uint32 selecti
 			} else {
 				p.fillRect(rthumb, documentColor(_colorIndex));
 				if (!radial && loaded && !_ext.isEmpty()) {
-					p.setFont(st::semiboldFont);
+					p.setFont(st::overviewFileExtFont);
 					p.setPen(st::white);
-					p.drawText(rthumb.left() + (rthumb.width() - _extw) / 2, rthumb.top() + st::msgFileExtTop + st::semiboldFont->ascent, _ext);
+					p.drawText(rthumb.left() + (rthumb.width() - _extw) / 2, rthumb.top() + st::overviewFileExtTop + st::overviewFileExtFont->ascent, _ext);
 				}
 			}
 			if (selected) {
@@ -1061,7 +1061,7 @@ namespace {
 	}
 }
 
-LayoutOverviewLink::LayoutOverviewLink(HistoryMedia *media, HistoryItem *parent) : LayoutMediaItem(parent)
+LayoutOverviewLink::LayoutOverviewLink(HistoryMedia *media, HistoryItem *parent) : LayoutMediaItem(OverviewItemInfo::Bit(), parent)
 , _titlew(0)
 , _page(0)
 , _pixw(0)
@@ -1319,8 +1319,8 @@ LayoutOverviewLink::Link::Link(const QString &url, const QString &text)
 , lnk(linkFromUrl(url)) {
 }
 
-LayoutInlineItem::LayoutInlineItem(InlineResult *result, DocumentData *doc, PhotoData *photo)
-: _result(result)
+LayoutInlineItem::LayoutInlineItem(InlineResult *result, DocumentData *doc, PhotoData *photo) : LayoutItem(0)
+, _result(result)
 , _doc(doc)
 , _photo(photo)
 , _position(0) {

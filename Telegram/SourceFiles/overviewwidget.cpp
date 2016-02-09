@@ -16,7 +16,7 @@ In addition, as a special exception, the copyright holders give permission
 to link the code of portions of this program with the OpenSSL library.
 
 Full license: https://github.com/telegramdesktop/tdesktop/blob/master/LICENSE
-Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
+Copyright (c) 2014-2016 John Preston, https://desktop.telegram.org
 */
 #include "stdafx.h"
 
@@ -91,8 +91,6 @@ OverviewInner::OverviewInner(OverviewWidget *overview, ScrollArea *scroll, PeerD
 
 	App::contextItem(0);
 
-	_linkTipTimer.setSingleShot(true);
-	connect(&_linkTipTimer, SIGNAL(timeout()), this, SLOT(showLinkTip()));
 	_touchSelectTimer.setSingleShot(true);
 	connect(&_touchSelectTimer, SIGNAL(timeout()), this, SLOT(onTouchSelect()));
 
@@ -355,7 +353,7 @@ void OverviewInner::repaintItem(MsgId itemId, int32 itemIndex) {
 			int32 row = (_photosToAdd + shownAtIndex) / _photosInRow, col = (_photosToAdd + shownAtIndex) % _photosInRow;
 			update(int32(col * w), _marginTop + int32(row * vsize), qCeil(w), vsize);
 		} else {
-			int32 top = _items.at(itemIndex)->getOverviewItemInfo()->top();
+			int32 top = _items.at(itemIndex)->Get<OverviewItemInfo>()->top();
 			if (_reversed) top = _height - top;
 			update(_rowsLeft, _marginTop + top, _rowWidth, _items.at(itemIndex)->height());
 		}
@@ -625,7 +623,7 @@ void OverviewInner::onDragExec() {
 	QList<QUrl> urls;
 	bool forwardSelected = false;
 	if (uponSelected) {
-		forwardSelected = !_selected.isEmpty() && _selected.cbegin().value() == FullSelection && cWideMode();
+		forwardSelected = !_selected.isEmpty() && _selected.cbegin().value() == FullSelection && !Adaptive::OneColumn();
 	} else if (textlnkDown()) {
 		sel = textlnkDown()->encoded();
 		if (!sel.isEmpty() && sel.at(0) != '/' && sel.at(0) != '@' && sel.at(0) != '#') {
@@ -729,7 +727,7 @@ QPoint OverviewInner::mapMouseToItem(QPoint p, MsgId itemId, int32 itemIndex) {
 		p.setX(p.x() - int32(col * w) - st::overviewPhotoSkip);
 		p.setY(p.y() - _marginTop - row * (_rowWidth + st::overviewPhotoSkip) - st::overviewPhotoSkip);
 	} else {
-		int32 top = _items.at(itemIndex)->getOverviewItemInfo()->top();
+		int32 top = _items.at(itemIndex)->Get<OverviewItemInfo>()->top();
 		if (_reversed) top = _height - top;
 		p.setY(p.y() - _marginTop - top);
 	}
@@ -765,7 +763,7 @@ int32 OverviewInner::itemTop(const FullMsgId &msgId) const {
 		int32 itemIndex = -1;
 		fixItemIndex(itemIndex, (msgId.channel == _channel) ? msgId.msg : ((_migrated && msgId.channel == _migrated->channelId()) ? -msgId.msg : 0));
 		if (itemIndex >= 0) {
-			int32 top = _items.at(itemIndex)->getOverviewItemInfo()->top();
+			int32 top = _items.at(itemIndex)->Get<OverviewItemInfo>()->top();
 			if (_reversed) top = _height - top;
 			return _marginTop + top;
 		}
@@ -879,10 +877,10 @@ void OverviewInner::paintEvent(QPaintEvent *e) {
 		int32 y = 0, w = _rowWidth;
 		for (int32 j = 0, l = _items.size(); j < l; ++j) {
 			int32 i = _reversed ? (l - j - 1) : j, nexti = _reversed ? (i - 1) : (i + 1);
-			int32 nextItemTop = (j + 1 == l) ? (_reversed ? 0 : _height) : _items.at(nexti)->getOverviewItemInfo()->top();
+			int32 nextItemTop = (j + 1 == l) ? (_reversed ? 0 : _height) : _items.at(nexti)->Get<OverviewItemInfo>()->top();
 			if (_reversed) nextItemTop = _height - nextItemTop;
 			if (_marginTop + nextItemTop > r.top()) {
-				OverviewItemInfo *info = _items.at(i)->getOverviewItemInfo();
+				OverviewItemInfo *info = _items.at(i)->Get<OverviewItemInfo>();
 				int32 curY = info->top();
 				if (_reversed) curY = _height - curY;
 				if (_marginTop + curY >= r.y() + r.height()) break;
@@ -944,10 +942,10 @@ void OverviewInner::onUpdateSelected() {
 		for (int32 j = 0, l = _items.size(); j < l; ++j) {
 			bool lastItem = (j + 1 == l);
 			int32 i = _reversed ? (l - j - 1) : j, nexti = _reversed ? (i - 1) : (i + 1);
-			int32 nextItemTop = lastItem ? (_reversed ? 0 : _height) : _items.at(nexti)->getOverviewItemInfo()->top();
+			int32 nextItemTop = lastItem ? (_reversed ? 0 : _height) : _items.at(nexti)->Get<OverviewItemInfo>()->top();
 			if (_reversed) nextItemTop = _height - nextItemTop;
 			if (_marginTop + nextItemTop > m.y() || lastItem) {
-				int32 top = _items.at(i)->getOverviewItemInfo()->top();
+				int32 top = _items.at(i)->Get<OverviewItemInfo>()->top();
 				if (_reversed) top = _height - top;
 				if (!_items.at(i)->toLayoutMediaItem()) { // day item
 					int32 h = _items.at(i)->height();
@@ -956,11 +954,11 @@ void OverviewInner::onUpdateSelected() {
 					if (i > 0 && (beforeItem || i == _items.size() - 1)) {
 						--i;
 						if (!_items.at(i)->toLayoutMediaItem()) break; // wtf
-						top = _items.at(i)->getOverviewItemInfo()->top();
+						top = _items.at(i)->Get<OverviewItemInfo>()->top();
 					} else if (i < _items.size() - 1 && (!beforeItem || !i)) {
 						++i;
 						if (!_items.at(i)->toLayoutMediaItem()) break; // wtf
-						top = _items.at(i)->getOverviewItemInfo()->top();
+						top = _items.at(i)->Get<OverviewItemInfo>()->top();
 					} else {
 						break; // wtf
 					}
@@ -1000,7 +998,7 @@ void OverviewInner::onUpdateSelected() {
 			}
 		}
 		textlnkOver(lnk);
-		QToolTip::hideText();
+		PopupTooltip::Hide();
 		App::hoveredLinkItem(lnk ? item : 0);
 		if (textlnkOver()) {
 			if (item && index >= 0) {
@@ -1015,16 +1013,16 @@ void OverviewInner::onUpdateSelected() {
 		lnkChanged = true;
 		if (oldMousedItem) repaintItem(oldMousedItem, oldMousedItemIndex);
 		if (item) repaintItem(item);
-		QToolTip::hideText();
+		PopupTooltip::Hide();
 	}
 	if (_cursorState == HistoryInDateCursorState && cursorState != HistoryInDateCursorState) {
-		QToolTip::hideText();
+		PopupTooltip::Hide();
 	}
 	if (cursorState != _cursorState) {
 		_cursorState = cursorState;
 	}
 	if (lnk || cursorState == HistoryInDateCursorState) {
-		_linkTipTimer.start(1000);
+		PopupTooltip::Show(1000, this);
 	}
 
 	fixItemIndex(_dragItemIndex, _dragItem);
@@ -1139,19 +1137,20 @@ void OverviewInner::onUpdateSelected() {
 	}
 }
 
+QPoint OverviewInner::tooltipPos() const {
+	return _dragPos;
+}
 
-void OverviewInner::showLinkTip() {
+QString OverviewInner::tooltipText() const {
 	TextLinkPtr lnk = textlnkOver();
-	int32 dd = QApplication::startDragDistance();
-	QPoint dp(mapFromGlobal(_dragPos));
-	QRect r(dp.x() - dd, dp.y() - dd, 2 * dd, 2 * dd);
 	if (lnk && !lnk->fullDisplayed()) {
-		QToolTip::showText(_dragPos, lnk->readable(), this, r);
+		return lnk->readable();
 	} else if (_cursorState == HistoryInDateCursorState && _dragAction == NoDrag && _mousedItem) {
 		if (HistoryItem *item = App::histItemById(itemChannel(_mousedItem), itemMsgId(_mousedItem))) {
-			QToolTip::showText(_dragPos, item->date.toString(QLocale::system().dateTimeFormat(QLocale::LongFormat)), this, r);
+			return item->date.toString(QLocale::system().dateTimeFormat(QLocale::LongFormat));
 		}
 	}
+	return QString();
 }
 
 void OverviewInner::updateDragSelection(MsgId dragSelFrom, int32 dragSelFromIndex, MsgId dragSelTo, int32 dragSelToIndex, bool dragSelecting) {
@@ -1385,7 +1384,7 @@ int32 OverviewInner::resizeToWidth(int32 nwidth, int32 scrollTop, int32 minHeigh
 		for (int32 i = 0, l = _items.size(); i < l; ++i) {
 			int32 h = _items.at(i)->resizeGetHeight(_rowWidth);
 			if (resize) {
-				_items.at(i)->getOverviewItemInfo()->setTop(_height + (_reversed ? h : 0));
+				_items.at(i)->Get<OverviewItemInfo>()->setTop(_height + (_reversed ? h : 0));
 				_height += h;
 			}
 		}
@@ -1746,7 +1745,7 @@ void OverviewInner::mediaOverviewUpdated() {
 			if (allGood) {
 				if (_items.size() > index && complexMsgId(_items.at(index)->getItem()) == msgid) {
 					if (withDates) prevDate = _items.at(index)->getItem()->date.date();
-					top = _items.at(index)->getOverviewItemInfo()->top();
+					top = _items.at(index)->Get<OverviewItemInfo>()->top();
 					if (!_reversed) {
 						top += _items.at(index)->height();
 					}
@@ -1756,7 +1755,7 @@ void OverviewInner::mediaOverviewUpdated() {
 				if (_items.size() > index + 1 && !_items.at(index)->toLayoutMediaItem() && complexMsgId(_items.at(index + 1)->getItem()) == msgid) { // day item
 					++index;
 					if (withDates) prevDate = _items.at(index)->getItem()->date.date();
-					top = _items.at(index)->getOverviewItemInfo()->top();
+					top = _items.at(index)->Get<OverviewItemInfo>()->top();
 					if (!_reversed) {
 						top += _items.at(index)->height();
 					}
@@ -1877,7 +1876,7 @@ void OverviewInner::repaintItem(const HistoryItem *msg) {
 			if (history == _migrated) msgid = -msgid;
 			for (int32 i = 0, l = _items.size(); i != l; ++i) {
 				if (complexMsgId(_items.at(i)->getItem()) == msgid) {
-					int32 top = _items.at(i)->getOverviewItemInfo()->top();
+					int32 top = _items.at(i)->Get<OverviewItemInfo>()->top();
 					if (_reversed) top = _height - top;
 					update(_rowsLeft, _marginTop + top, _rowWidth, _items.at(i)->height());
 					break;
@@ -1982,7 +1981,7 @@ int32 OverviewInner::setLayoutItem(int32 index, LayoutItem *item, int32 top) {
 		_items.push_back(item);
 	}
 	int32 h = item->resizeGetHeight(_rowWidth);
-	if (OverviewItemInfo *info = item->getOverviewItemInfo()) {
+	if (OverviewItemInfo *info = item->Get<OverviewItemInfo>()) {
 		info->setTop(top + (_reversed ? h : 0));
 	}
 	return h;
@@ -2008,7 +2007,7 @@ OverviewWidget::OverviewWidget(QWidget *parent, PeerData *peer, MediaOverviewTyp
 	_scroll.move(0, 0);
 	_inner.move(0, 0);
 
-	_sideShadow.setVisible(cWideMode());
+	_sideShadow.setVisible(!Adaptive::OneColumn());
 
 	updateScrollColors();
 
@@ -2059,8 +2058,8 @@ void OverviewWidget::resizeEvent(QResizeEvent *e) {
 	}
 	_noDropResizeIndex = false;
 
-	_topShadow.resize(width() - ((cWideMode() && !_inGrab) ? st::lineWidth : 0), st::lineWidth);
-	_topShadow.moveToLeft((cWideMode() && !_inGrab) ? st::lineWidth : 0, 0);
+	_topShadow.resize(width() - ((!Adaptive::OneColumn() && !_inGrab) ? st::lineWidth : 0), st::lineWidth);
+	_topShadow.moveToLeft((!Adaptive::OneColumn() && !_inGrab) ? st::lineWidth : 0, 0);
 	_sideShadow.resize(st::lineWidth, height());
 	_sideShadow.moveToLeft(0, 0);
 }
@@ -2241,7 +2240,7 @@ void OverviewWidget::step_show(float64 ms, bool timer) {
 	float64 dt = ms / st::slideDuration;
 	if (dt >= 1) {
 		_a_show.stop();
-		_sideShadow.setVisible(cWideMode());
+		_sideShadow.setVisible(!Adaptive::OneColumn());
 		_topShadow.show();
 
 		a_coordUnder.finish();
@@ -2264,8 +2263,8 @@ void OverviewWidget::step_show(float64 ms, bool timer) {
 	}
 }
 
-void OverviewWidget::updateWideMode() {
-	_sideShadow.setVisible(cWideMode());
+void OverviewWidget::updateAdaptiveLayout() {
+	_sideShadow.setVisible(!Adaptive::OneColumn());
 }
 
 void OverviewWidget::doneShow() {

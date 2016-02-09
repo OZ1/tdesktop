@@ -16,13 +16,11 @@ In addition, as a special exception, the copyright holders give permission
 to link the code of portions of this program with the OpenSSL library.
 
 Full license: https://github.com/telegramdesktop/tdesktop/blob/master/LICENSE
-Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
+Copyright (c) 2014-2016 John Preston, https://desktop.telegram.org
 */
 #include "stdafx.h"
 
 #include "application.h"
-
-#include <signal.h>
 
 uint64 _SharedMemoryLocation[4] = { 0x00, 0x01, 0x02, 0x03 };
 
@@ -266,84 +264,47 @@ namespace {
 	_MsStarter _msStarter;
 }
 
-void initThirdParty() {
-	if (!RAND_status()) { // should be always inited in all modern OS
-		char buf[16];
-		memcpy(buf, &_msStart, 8);
-		memcpy(buf + 8, &_msFreq, 8);
-		uchar sha256Buffer[32];
-		RAND_seed(hashSha256(buf, 16, sha256Buffer), 32);
-		if (!RAND_status()) {
-			LOG(("MTP Error: Could not init OpenSSL rand, RAND_status() is 0.."));
+namespace ThirdParty {
+
+	void start() {
+		if (!RAND_status()) { // should be always inited in all modern OS
+			char buf[16];
+			memcpy(buf, &_msStart, 8);
+			memcpy(buf + 8, &_msFreq, 8);
+			uchar sha256Buffer[32];
+			RAND_seed(hashSha256(buf, 16, sha256Buffer), 32);
+			if (!RAND_status()) {
+				LOG(("MTP Error: Could not init OpenSSL rand, RAND_status() is 0.."));
+			}
 		}
+
+		int32 numLocks = CRYPTO_num_locks();
+		if (numLocks) {
+			_sslLocks = new QMutex[numLocks];
+			CRYPTO_set_locking_callback(_sslLockingCallback);
+		} else {
+			LOG(("MTP Error: Could not init OpenSSL threads, CRYPTO_num_locks() returned zero!"));
+		}
+		CRYPTO_THREADID_set_callback(_sslThreadId);
+		CRYPTO_set_dynlock_create_callback(_sslCreateFunction);
+		CRYPTO_set_dynlock_lock_callback(_sslLockFunction);
+		CRYPTO_set_dynlock_destroy_callback(_sslDestroyFunction);
+
+		av_register_all();
+		avcodec_register_all();
+
+//		av_lockmgr_register(_ffmpegLockManager);
+
+		_sslInited = true;
 	}
 
-	int32 numLocks = CRYPTO_num_locks();
-	if (numLocks) {
-		_sslLocks = new QMutex[numLocks];
-		CRYPTO_set_locking_callback(_sslLockingCallback);
-	} else {
-		LOG(("MTP Error: Could not init OpenSSL threads, CRYPTO_num_locks() returned zero!"));
+	void finish() {
+		av_lockmgr_register(0);
+
+		delete[] _sslLocks;
+		_sslLocks = 0;
 	}
-	CRYPTO_THREADID_set_callback(_sslThreadId);
-	CRYPTO_set_dynlock_create_callback(_sslCreateFunction);
-	CRYPTO_set_dynlock_lock_callback(_sslLockFunction);
-	CRYPTO_set_dynlock_destroy_callback(_sslDestroyFunction);
 
-	av_register_all();
-	avcodec_register_all();
-
-	av_lockmgr_register(_ffmpegLockManager);
-
-	_sslInited = true;
-}
-
-void deinitThirdParty() {
-	av_lockmgr_register(0);
-
-	delete[] _sslLocks;
-	_sslLocks = 0;
-}
-
-namespace {
-	FILE *_crashDump = 0;
-	int _crashDumpNo = 0;
-}
-
-void _signalHandler(int signum) {
-	const char* name = 0;
-	switch (signum) {
-	case SIGABRT: name = "SIGABRT"; break;
-	case SIGSEGV: name = "SIGSEGV"; break;
-	case SIGILL: name = "SIGILL"; break;
-	case SIGFPE: name = "SIGFPE"; break;
-#ifndef Q_OS_WIN
-	case SIGBUS: name = "SIGBUS"; break;
-	case SIGSYS: name = "SIGSYS"; break;
-#endif
-	}
-	LOG(("Caught signal %1").arg(name));
-	if (name)
-		fprintf(stdout, "Caught signal %d (%s)\n", signum, name);
-	else
-		fprintf(stdout, "Caught signal %d\n", signum);
-
-
-	//printStackTrace();
-}
-
-void installSignalHandlers() {
-	_crashDump = fopen((cWorkingDir() + qsl("tdata/working")).toUtf8().constData(), "wb");
-	if (_crashDump) _crashDumpNo = fileno(_crashDump);
-
-	signal(SIGABRT, _signalHandler);
-	signal(SIGSEGV, _signalHandler);
-	signal(SIGILL, _signalHandler);
-	signal(SIGFPE, _signalHandler);
-#ifndef Q_OS_WIN
-	signal(SIGBUS, _signalHandler);
-	signal(SIGSYS, _signalHandler);
-#endif
 }
 
 bool checkms() {
@@ -1055,3 +1016,34 @@ MimeType mimeTypeForData(const QByteArray &data) {
 	}
 	return MimeType(QMimeDatabase().mimeTypeForData(data));
 }
+
+class InterfacesMetadatasMap : public QMap<uint64, InterfacesMetadata*> {
+public:
+	~InterfacesMetadatasMap() {
+		for (const_iterator i = cbegin(), e = cend(); i != e; ++i) {
+			delete i.value();
+		}
+	}
+};
+
+const InterfacesMetadata *GetInterfacesMetadata(uint64 mask) {
+	typedef QMap<uint64, InterfacesMetadata*> InterfacesMetadatasMap;
+	static InterfacesMetadatasMap InterfacesMetadatas;
+	static QMutex InterfacesMetadatasMutex;
+
+	QMutexLocker lock(&InterfacesMetadatasMutex);
+	InterfacesMetadatasMap::const_iterator i = InterfacesMetadatas.constFind(mask);
+	if (i == InterfacesMetadatas.cend()) {
+		InterfacesMetadata *meta = new InterfacesMetadata(mask);
+		if (!meta) { // terminate if we can't allocate memory
+			throw "Can't allocate memory!";
+		}
+
+		i = InterfacesMetadatas.insert(mask, meta);
+	}
+	return i.value();
+}
+
+InterfaceWrapStruct InterfaceWraps[64];
+
+QAtomicInt InterfaceIndexLast(0);

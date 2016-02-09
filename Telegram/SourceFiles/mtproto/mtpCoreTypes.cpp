@@ -16,14 +16,12 @@ In addition, as a special exception, the copyright holders give permission
 to link the code of portions of this program with the OpenSSL library.
 
 Full license: https://github.com/telegramdesktop/tdesktop/blob/master/LICENSE
-Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
+Copyright (c) 2014-2016 John Preston, https://desktop.telegram.org
 */
 #include "stdafx.h"
 #include "mtpCoreTypes.h"
 
 #include "lang.h"
-
-#if defined _DEBUG || defined _WITH_DEBUG
 
 QString mtpWrapNumber(float64 number) {
 	return QString::number(number);
@@ -63,9 +61,9 @@ void mtpTextSerializeCore(MTPStringLogger &to, const mtpPrime *&from, const mtpP
 		if (str.toUtf8() == strUtf8) {
 			to.add("\"").add(str.replace('\\', "\\\\").replace('"', "\\\"").replace('\n', "\\n")).add("\" [STRING]");
 		} else if (strUtf8.size() < 64) {
-			to.add(mb(strUtf8.constData(), strUtf8.size()).str()).add(" [").add(mtpWrapNumber(strUtf8.size())).add(" BYTES]");
+			to.add(Logs::mb(strUtf8.constData(), strUtf8.size()).str()).add(" [").add(mtpWrapNumber(strUtf8.size())).add(" BYTES]");
 		} else {
-			to.add(mb(strUtf8.constData(), 16).str()).add(".. [").add(mtpWrapNumber(strUtf8.size())).add(" BYTES]");
+			to.add(Logs::mb(strUtf8.constData(), 16).str()).add(".. [").add(mtpWrapNumber(strUtf8.size())).add(" BYTES]");
 		}
 	} break;
 
@@ -150,8 +148,6 @@ void mtpTextSerializeCore(MTPStringLogger &to, const mtpPrime *&from, const mtpP
 	} break;
 	}
 }
-
-#endif
 
 QString stickerSetTitle(const MTPDstickerSet &s) {
 	QString title = qs(s.vtitle);

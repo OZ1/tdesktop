@@ -20,6 +20,8 @@ The source code is published under GPLv3 with OpenSSL exception, the license is 
 * libexif 0.6.20 ([LGPL](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html))
 * LZMA SDK 9.20 ([public domain](http://www.7-zip.org/sdk.html))
 * liblzma ([public domain](http://tukaani.org/xz/))
+* Google Breakpad ([License](https://chromium.googlesource.com/breakpad/breakpad/+/master/LICENSE))
+* Google Crashpad ([Apache License 2.0](https://chromium.googlesource.com/crashpad/crashpad/+/master/LICENSE))
 * OpenAL Soft ([LGPL](http://kcat.strangesoft.net/openal.html))
 * Opus codec ([BSD license](http://www.opus-codec.org/license/))
 * FFmpeg ([LGPL](https://www.ffmpeg.org/legal.html))
@@ -45,21 +47,6 @@ The source code is published under GPLv3 with OpenSSL exception, the license is 
 * ### Packer
 
   Compiles given files to single update file, compresses it with lzma and signs with a private key. It is not built in **Debug** and **Release** configurations of Telegram solution, because private key is inaccessible.
-
-* ### Prepare
-
-  Prepares a release for deployment, puts all current files to deploy/{version} folder.
-
-  **Windows**:
-  * tsetup{version}.exe installer
-  * Telegram.exe
-  * Telegram.pdb (debug info for crash minidumps view)
-  * tupdate{updversion} binary lzma update archive
-
-  **Mac**:
-  * tsetup{version}.dmg
-  * Telegram.app
-  * tmacupd{updversion} binary lzma update archive
 
 * ### MetaEmoji
 

@@ -16,7 +16,7 @@ In addition, as a special exception, the copyright holders give permission
 to link the code of portions of this program with the OpenSSL library.
 
 Full license: https://github.com/telegramdesktop/tdesktop/blob/master/LICENSE
-Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
+Copyright (c) 2014-2016 John Preston, https://desktop.telegram.org
 */
 #include "stdafx.h"
 #include "lang.h"
@@ -25,8 +25,9 @@ Copyright (c) 2014-2015 John Preston, https://desktop.telegram.org
 #include "application.h"
 #include "fileuploader.h"
 #include "mainwidget.h"
+#if QT_VERSION < QT_VERSION_CHECK(5, 5, 0)
 #include <libexif/exif-data.h>
-
+#endif
 #include "localstorage.h"
 
 #include "numbers.h"
@@ -151,12 +152,12 @@ namespace App {
 		return result;
 	}
 
-	Application *app() {
-		return Application::app();
+	AppClass *app() {
+		return AppClass::app();
 	}
 
 	Window *wnd() {
-		return Application::wnd();
+		return AppClass::wnd();
 	}
 
 	MainWidget *main() {
@@ -2279,9 +2280,7 @@ namespace App {
 		if (wnd()) {
 			wnd()->quit();
 		}
-		if (app()) {
-			app()->quit();
-		}
+		Application::quit();
 	}
 
 	bool quiting() {
@@ -2612,9 +2611,14 @@ namespace App {
 	}
 
 	QNetworkProxy getHttpProxySettings() {
-		if (cConnectionType() == dbictHttpProxy) {
-			const ConnectionProxy &p(cConnectionProxy());
-			return QNetworkProxy(QNetworkProxy::HttpProxy, p.host, p.port, p.user, p.password);
+		const ConnectionProxy *proxy = 0;
+		if (Global::started()) {
+			proxy = (cConnectionType() == dbictHttpProxy) ? (&cConnectionProxy()) : 0;
+		} else {
+			proxy = Sandbox::PreLaunchProxy().host.isEmpty() ? 0 : (&Sandbox::PreLaunchProxy());
+		}
+		if (proxy) {
+			return QNetworkProxy(QNetworkProxy::HttpProxy, proxy->host, proxy->port, proxy->user, proxy->password);
 		}
 		return QNetworkProxy(QNetworkProxy::DefaultProxy);
 	}

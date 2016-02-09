@@ -46,6 +46,12 @@
     <Filter Include="Version">
       <UniqueIdentifier>{9d7bbb7d-817b-4f19-a719-74e674bdc84b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ThirdParty">
+      <UniqueIdentifier>{cda95767-f353-4a6b-a124-73632e61028a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdParty\minizip">
+      <UniqueIdentifier>{1abe710c-3c36-484c-b2a5-881c29a051c2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SourceFiles\main.cpp">
@@ -897,6 +903,9 @@
     <ClCompile Include="GeneratedFiles\Release\moc_history.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
+    <ClCompile Include="ThirdParty\minizip\zip.c">
+      <Filter>ThirdParty\minizip</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SourceFiles\stdafx.h">
@@ -985,6 +994,15 @@
     </ClInclude>
     <ClInclude Include="SourceFiles\facades.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\minizip\crypt.h">
+      <Filter>ThirdParty\minizip</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\minizip\ioapi.h">
+      <Filter>ThirdParty\minizip</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\minizip\zip.h">
+      <Filter>ThirdParty\minizip</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
